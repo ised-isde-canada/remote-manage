@@ -4,10 +4,10 @@
     "type": "library",
     "license": "GPL-2.0+",
     "scripts": {
-        "post-install-cmd": [
+        "post-package-install": [
             "php bin/install.php"
         ],
-        "post-update-cmd": [
+        "post-package-update": [
             "php bin/install.php"
         ]
     }
