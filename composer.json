@@ -6,6 +6,9 @@
     "scripts": {
         "post-package-install": [
             "DsutterGc\\RemoteManage\\Installer::postPackageInstall"
+        ],
+        "post-package-update": [
+            "DsutterGc\\RemoteManage\\Installer::postPackageInstall"
         ]
     }
 }
