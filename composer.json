@@ -5,7 +5,7 @@
     "license": "GPL-2.0+",
     "scripts": {
         "post-package-install": [
-            "DsutterGc\\Installer::postPackageInstall"
+            "DsutterGc\\RemoteManage\\Installer::postPackageInstall"
         ]
     }
 }
