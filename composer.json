@@ -5,10 +5,7 @@
     "license": "GPL-2.0+",
     "scripts": {
         "post-package-install": [
-            "php bin/install.php"
-        ],
-        "post-package-update": [
-            "php bin/install.php"
+            "DsutterGc\\Installer::postPackageInstall"
         ]
     }
 }
