@@ -1,0 +1,14 @@
+{
+    "name": "dsutter-gc/remote-manage",
+    "description": "Remote Management",
+    "type": "library",
+    "license": "GPL-2.0+",
+    "scripts": {
+        "post-install-cmd": [
+            "php bin/install.php"
+        ],
+        "post-update-cmd": [
+            "php bin/install.php"
+        ]
+    }
+}
