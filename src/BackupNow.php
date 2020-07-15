@@ -2,7 +2,7 @@
 
 namespace RemoteManage;
 
-class Backup
+class BackupNow
 {
   function run()
   {

@@ -1,9 +1,9 @@
 <?php
 
-use RemoteManage\Backup;
+use RemoteManage\BackupNow;
 
 echo "This is the Remote Manager!\n";
 
-$backup = new Backup();
+$backup = new BackupNow();
 
 $backup->run();
