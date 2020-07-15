@@ -2,5 +2,10 @@
     "name": "dsutter-gc/remote-manage",
     "description": "Remote Management",
     "type": "library",
-    "license": "GPL-2.0+"
+    "license": "GPL-2.0+",
+    "autoload": {
+        "psr-4": {
+            "RemoteManage\\": "src/"
+        }
+    }
 }
