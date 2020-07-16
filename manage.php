@@ -12,6 +12,7 @@ else {
 
 use RemoteManage\Config;
 use RemoteManage\DrupalSite;
+use RemoteManage\MoodleSite;
 use RemoteManage\Log;
 
 Log::msg("This is the Remote Manager!");
@@ -19,6 +20,20 @@ Log::msg("This is the Remote Manager!");
 $config = new Config();
 
 Log::msg('Site type is: ' . $config->siteType);
-$drupal = new DrupalSite();
 
+$drupal = new DrupalSite();
+$moodle = new MoodleSite();
+
+$drupal->maintMode(true);
 $drupal->backup();
+$drupal->maintMode(false);
+
+$moodle->maintMode(true);
+$moodle->backup();
+$moodle->maintMode(false);
+
+$json = [];
+$json['messages'] = Log::get();
+
+header('Content-type: application/json; charset=utf-8');
+echo json_encode($json);

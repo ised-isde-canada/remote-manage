@@ -9,6 +9,11 @@ class DrupalSite
         Log::msg("Drupal backup is running...");
     }
 
+    public static function detect()
+    {
+        return is_dir(Config::homeDir . '/drush') ? true : false;
+    }
+
     public function maintMode($maint=true)
     {
         if ($maint) {

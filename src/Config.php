@@ -10,10 +10,11 @@ class Config
     public function __construct()
     {
         $this->homeDir = getenv('HOME');
-        if (is_dir($this->homeDir . '/drush')) {
+
+        if (DrupalSite::detect()) {
             $this->siteType = 'drupal';
         }
-        else {
+        else if (MoodleSite::detect()) {
             $this->siteType = 'moodle';
         }
     }
