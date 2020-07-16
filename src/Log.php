@@ -14,7 +14,7 @@ class Log
         return self::$messages;
     }
 
-    public static function log($str)
+    public static function msg($str)
     {
         self::$messages[] = $str;
     }
