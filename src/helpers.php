@@ -2,6 +2,11 @@
 
 namespace RemoteManage;
 
+function config()
+{
+    return "ok\n";
+}
+
 /**
  * Execute a shell command - with error handling.
  *
