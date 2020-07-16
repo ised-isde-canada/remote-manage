@@ -4,18 +4,18 @@ namespace RemoteManage;
 
 class Config
 {
-    public $homeDir = null;
-    public $siteType = null;
+    public static $homeDir = null;
+    public static $siteType = null;
 
-    public function __construct()
+    public static function initialize()
     {
-        $this->homeDir = getenv('HOME');
+        self::$homeDir = getenv('HOME');
 
         if (DrupalSite::detect()) {
-            $this->siteType = 'drupal';
+            self::$siteType = 'drupal';
         }
         else if (MoodleSite::detect()) {
-            $this->siteType = 'moodle';
+            self::$siteType = 'moodle';
         }
     }
 }

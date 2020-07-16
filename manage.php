@@ -17,9 +17,9 @@ use RemoteManage\Log;
 
 Log::msg("This is the Remote Manager!");
 
-$config = new Config();
+Config::initialize();
 
-Log::msg('Site type is: ' . $config->siteType);
+Log::msg('Site type is: ' . Config::$siteType);
 
 $drupal = new DrupalSite();
 $moodle = new MoodleSite();
