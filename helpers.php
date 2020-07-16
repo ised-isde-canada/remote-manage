@@ -1,7 +1,5 @@
 <?php
 
-namespace RemoteManage;
-
 function config()
 {
     return "ok\n";

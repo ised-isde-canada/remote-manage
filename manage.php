@@ -8,7 +8,7 @@
  */
 
 include_once "autoloader.php";
-include_once "src/helpers.php";
+include_once "helpers.php";
 
 use RemoteManage\Config;
 use RemoteManage\DrupalSite;
