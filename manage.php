@@ -1,9 +1,24 @@
 <?php
 
-use RemoteManage\BackupNow;
+// Set up autoloader, which assumes that we are running in a vendor folder.
+// If this proves problematic, then see vendor/drush/drush/drush.php for ideas to make this better
 
-echo "This is the Remote Manager!\n";
+if (file_exists($autoloadFile = __DIR__ . '/../../autoload.php')) {
+    include_once($autoloadFile);
+}
+else {
+    throw new \Exception("Could not locate autoload.php.");
+}
 
-$backup = new BackupNow();
+use RemoteManage\Config;
+use RemoteManage\DrupalSite;
+use RemoteManage\Log;
 
-$backup->run();
+Log::msg("This is the Remote Manager!");
+
+$config = new Config();
+
+Log::msg('Site type is: ' . $config->siteType);
+$drupal = new DrupalSite();
+
+$drupal->backup();
