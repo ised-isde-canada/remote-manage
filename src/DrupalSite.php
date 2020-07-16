@@ -11,7 +11,7 @@ class DrupalSite
 
     public static function detect()
     {
-        return is_dir(Config::homeDir . '/drush') ? true : false;
+        return is_dir(Config::$homeDir . '/drush') ? true : false;
     }
 
     public function maintMode($maint=true)

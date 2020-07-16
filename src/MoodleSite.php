@@ -11,7 +11,7 @@ class MoodleSite
 
     public static function detect()
     {
-        return file_exists(Config::homeDir . '/config.php') ? true : false;
+        return file_exists(Config::$homeDir . '/config.php') ? true : false;
     }
 
     public function maintMode($maint=true)
