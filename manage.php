@@ -1,39 +1,52 @@
 <?php
 
-// Set up autoloader, which assumes that we are running in a vendor folder.
-// If this proves problematic, then see vendor/drush/drush/drush.php for ideas to make this better
+/**
+ * This is the main entry point for remote management.
+ *
+ * Coding Guidelines:
+ * Please follow the PHP Standards Recommendations at https://www.php-fig.org/psr/
+ */
 
-if (file_exists($autoloadFile = __DIR__ . '/../../autoload.php')) {
-    include_once($autoloadFile);
-}
-else {
-    throw new \Exception("Could not locate autoload.php.");
-}
+include_once "autoloader.php";
+include_once "src/helpers.php";
 
 use RemoteManage\Config;
 use RemoteManage\DrupalSite;
 use RemoteManage\MoodleSite;
 use RemoteManage\Log;
 
-Log::msg("This is the Remote Manager!");
-
 Config::initialize();
 
 Log::msg('Site type is: ' . Config::$siteType);
 
-$drupal = new DrupalSite();
-$moodle = new MoodleSite();
+switch (Config::$siteType) {
+    case 'drupal':
+        $drupal = new DrupalSite();
+        $drupal->maintMode(true);
+        try {
+            $drupal->backup();
+        }
+        catch (Exception $e) {
 
-$drupal->maintMode(true);
-$drupal->backup();
-$drupal->maintMode(false);
+        }
+        $drupal->maintMode(false);
+        break;
 
-$moodle->maintMode(true);
-$moodle->backup();
-$moodle->maintMode(false);
+    case 'moodle':
+        $moodle = new MoodleSite();
+        $moodle->maintMode(true);
+        try {
+            $moodle->backup();
+        }
+        catch (Exception $e) {
+
+        }
+        $moodle->maintMode(false);
+        break;
+}
 
 $json = [];
 $json['messages'] = Log::get();
 
 header('Content-type: application/json; charset=utf-8');
-echo json_encode($json);
+echo json_encode($json, JSON_PRETTY_PRINT) . PHP_EOL;
