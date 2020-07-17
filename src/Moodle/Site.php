@@ -1,8 +1,8 @@
 <?php
 
-namespace RemoteManage;
+namespace RemoteManage\Moodle;
 
-class MoodleSite
+class Site
 {
     public function backup()
     {

@@ -11,8 +11,8 @@ include_once "autoloader.php";
 include_once "helpers.php";
 
 use RemoteManage\Config;
-use RemoteManage\DrupalSite;
-use RemoteManage\MoodleSite;
+use RemoteManage\Drupal\Site as DrupalSite;
+use RemoteManage\Moodle\Site as MoodleSite;
 use RemoteManage\Log;
 
 Config::initialize();

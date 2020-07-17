@@ -1,6 +1,6 @@
 <?php
 
-function config()
+function xconfig()
 {
     return "ok\n";
 }

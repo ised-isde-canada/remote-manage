@@ -11,10 +11,10 @@ class Config
     {
         self::$homeDir = getenv('HOME');
 
-        if (DrupalSite::detect()) {
+        if (Drupal\Site::detect()) {
             self::$siteType = 'drupal';
         }
-        else if (MoodleSite::detect()) {
+        else if (Moodle\Site::detect()) {
             self::$siteType = 'moodle';
         }
     }

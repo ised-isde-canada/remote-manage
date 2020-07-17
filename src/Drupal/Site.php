@@ -1,8 +1,8 @@
 <?php
 
-namespace RemoteManage;
+namespace RemoteManage\Drupal;
 
-class DrupalSite
+class Site
 {
     /**
      * Backup a Drupal site.
@@ -26,6 +26,11 @@ class DrupalSite
 
         // Copy the compressed gz file to S3.
         execmd('s3cmd -q --mime-type=application/x-gzip put ' . $cfg['tmpdir'] . '/' . $cfg['s3file'] . '.gz s3://$bucket/' . $cfg['s3file'] . '.gz 2>&1');
+    }
+
+    public function get_config()
+    {
+
     }
 
     public static function detect()
