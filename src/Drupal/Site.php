@@ -2,6 +2,9 @@
 
 namespace RemoteManage\Drupal;
 
+use RemoteManage\Config;
+use RemoteManage\Log;
+
 class Site
 {
     /**

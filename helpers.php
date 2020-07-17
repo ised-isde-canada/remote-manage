@@ -1,6 +1,6 @@
 <?php
 
-function xconfig()
+function config()
 {
     return "ok\n";
 }
@@ -19,7 +19,7 @@ function execmd($cmd, $dir = '')
         chdir($dir);
     }
 
-    Log::msg($cmd);
+    RemoteManage\Log::msg($cmd);
     exec($cmd, $output, $rc);
 
     // Restore current directory back to its original state, if needed.
@@ -29,7 +29,7 @@ function execmd($cmd, $dir = '')
 
     // On error, throw an exception
     if ($rc !== 0) {
-        Log::msg("ERROR: Command execution failure. Return code=$rc");
+        RemoteManage\Log::msg("ERROR: Command execution failure. Return code=$rc");
         throw new \Exception("Command execution failure. Return code=$rc");
     }
 }

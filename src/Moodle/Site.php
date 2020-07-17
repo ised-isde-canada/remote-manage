@@ -2,6 +2,9 @@
 
 namespace RemoteManage\Moodle;
 
+use RemoteManage\Config;
+use RemoteManage\Log;
+
 class Site
 {
     public function backup()
