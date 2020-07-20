@@ -29,7 +29,7 @@ $site = getSite();
 Log::msg('Site type is: ' . $site->siteType);
 
 // Get the requested operation and dispatch.
-switch ($_POST['operation']) {
+switch ($_REQUEST['operation']) {
     case 'backup':
         $site->backup();
         break;

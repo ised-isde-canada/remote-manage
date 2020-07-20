@@ -6,31 +6,16 @@
 
 namespace RemoteManage\Moodle;
 
-use RemoteManage\Log;
+use RemoteManage\BaseSite;
 
-class Site
+class Site extends BaseSite
 {
-    public $siteType = 'moodle';
-
-    /**
-     * Backup a Moodle site, using parameters provided in the POST and local configuration.
-     */
-    public function backup()
+    public function __construct()
     {
-        Log::msg("Moodle backup is running...");
-        $this->maintMode(true);
-        $this->maintMode(false);
-    }
-
-    /**
-     * Perform a cleanup on any temporary files that may have been created during backup or restore.
-     */
-    public function cleanup()
-    {
-        // Remove any files that were created
-
-        // Take site out of maintenance mode
-        $this->maintMode(false);
+        $this->siteType = 'moodle';
+        $this->volumes = [];
+        // init $this->cfg
+        parent::__construct();
     }
 
     /**
@@ -40,36 +25,6 @@ class Site
      */
     public static function detect()
     {
-        return file_exists(getenv('HOME') . '/config.php') ? true : false;
-    }
-
-    /**
-     * Get the configuration for a Moodle site.
-     */
-    public function getConfig()
-    {
-
-    }
-
-    /**
-     * Take the site in or out of maintenance mode.
-     * @param boolean $maint
-     */
-    public function maintMode($maint=true)
-    {
-        if ($maint) {
-            Log::msg("Enter Moodle maint mode");
-        }
-        else {
-            Log::msg("Exit Moodle maint mode");
-        }
-    }
-
-    /**
-     * Restore a Moodle site, using parameters provided in the POST and local configuration.
-     */
-    public function restore()
-    {
-
+        return is_dir(getenv('HOME') . '/drush') ? true : false;
     }
 }
