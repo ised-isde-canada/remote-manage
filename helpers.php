@@ -1,9 +1,8 @@
 <?php
 
-function config()
-{
-    return "ok\n";
-}
+/**
+ * Helper functions are global in scope.
+ */
 
 /**
  * Execute a shell command - with error handling.
