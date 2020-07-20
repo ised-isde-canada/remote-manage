@@ -15,11 +15,11 @@ class Site extends BaseSite
 
     public function __construct()
     {
+        parent::__construct(); // Call the parent constructor first
+
         $this->siteType = 'drupal';
-        $this->volumes = ['src/html/sites'];
-        // init $this->cfg
+        $this->volumes = ['/opt/app-root/src/html/sites'];
         $this->drushCmd = getenv('HOME') . '/vendor/bin/drush';
-        parent::__construct();
     }
 
     /**

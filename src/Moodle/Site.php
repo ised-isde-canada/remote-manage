@@ -12,10 +12,10 @@ class Site extends BaseSite
 {
     public function __construct()
     {
+        parent::__construct(); // Call the parent constructor first
+
         $this->siteType = 'moodle';
         $this->volumes = [];
-        // init $this->cfg
-        parent::__construct();
     }
 
     /**
