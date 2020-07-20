@@ -22,6 +22,14 @@ $loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
 include_once "helpers.php";
 
 use RemoteManage\Log;
+use RemoteManage\S3Cmd;
+
+// TEMPORARY: Load .env file which may accompany this package.
+if (($env = file(__DIR__ . '/.env')) !== false) {
+    foreach ($env as $e) {
+        putenv(trim($e));
+    }
+}
 
 // Get a site object. This will determine the type of site.
 $site = getSite();
@@ -36,6 +44,11 @@ switch ($_REQUEST['operation']) {
 
     case 'restore':
         $site->restore();
+        break;
+
+    case 's3list': // temporary, for testing
+        $s3 = new S3Cmd();
+        $s3->getList();
         break;
 
     default:

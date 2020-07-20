@@ -22,7 +22,6 @@ class Site extends BaseSite
         $this->cfg['dbpass'] = '';
         $this->cfg['dbname'] = '';
         $this->cfg['dbbackup'] = 'database.tar';
-        $this->cfg['s3bucket'] = '';
         $this->cfg['tmpdir'] = '/tmp/' . $this->siteType . '-remote';
         $this->cfg['volumes'] = ['/abs/path/to/dir'];
 
