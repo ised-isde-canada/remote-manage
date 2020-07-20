@@ -6,7 +6,6 @@
 
 namespace RemoteManage\Moodle;
 
-use RemoteManage\Config;
 use RemoteManage\Log;
 
 class Site
@@ -41,7 +40,7 @@ class Site
      */
     public static function detect()
     {
-        return file_exists(Config::$homeDir . '/config.php') ? true : false;
+        return file_exists(getenv('HOME') . '/config.php') ? true : false;
     }
 
     /**

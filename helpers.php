@@ -4,31 +4,22 @@
  * Helper functions are global in scope.
  */
 
+use RemoteManage\Drupal\Site as DrupalSite;
+use RemoteManage\Moodle\Site as MoodleSite;
+
 /**
- * Execute a shell command - with error handling.
- *
- * @param string $cmd The command to be executed.
- * @param string $dir Optional directory from where to execute the command.
+ * Get a Site instance. This will detect the type of site and return the appropriate class.
+ * @return \RemoteManage\Drupal\Site|\RemoteManage\Moodle\Site|NULL
  */
-function execmd($cmd, $dir = '')
+function getSite()
 {
-    // Change into specified directory if specified.
-    if (!empty($dir)) {
-        $cwd = getcwd();
-        chdir($dir);
+    if (DrupalSite::detect()) {
+        return new DrupalSite();
     }
 
-    RemoteManage\Log::msg($cmd);
-    exec($cmd, $output, $rc);
-
-    // Restore current directory back to its original state, if needed.
-    if (!empty($dir)) {
-        chdir($cwd);
+    if (MoodleSite::detect()) {
+        return new MoodleSite();
     }
 
-    // On error, throw an exception
-    if ($rc !== 0) {
-        RemoteManage\Log::msg("ERROR: Command execution failure. Return code=$rc");
-        throw new \Exception("Command execution failure. Return code=$rc");
-    }
+    return null;
 }

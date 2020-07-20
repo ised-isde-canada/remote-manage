@@ -15,27 +15,16 @@
  * Please follow the PHP Standards Recommendations at https://www.php-fig.org/psr/
  */
 
-// Use the comopser PSR-4 autoloader
+// Use the composer PSR-4 autoloader
 $loader = require 'vendor/autoload.php';
 $loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
 
 include_once "helpers.php";
 
-use RemoteManage\Config;
-use RemoteManage\Drupal\Site as DrupalSite;
-use RemoteManage\Moodle\Site as MoodleSite;
 use RemoteManage\Log;
 
-// Initialize the configuration. We may move this into the individual sites.
-Config::initialize();
-
-// Detect what type of site we're on and instantiate the appropriate class to handle the requested operation.
-if (DrupalSite::detect()) {
-    $site = new DrupalSite();
-}
-else if (MoodleSite::detect()) {
-    $site = new MoodleSite();
-}
+// Get a site object. This will determine the type of site.
+$site = getSite();
 
 Log::msg('Site type is: ' . $site->siteType);
 
@@ -48,6 +37,9 @@ switch ($_POST['operation']) {
     case 'restore':
         $site->restore();
         break;
+
+    default:
+        Log::msg("ERROR: The operation is either missing or invalid.");
 }
 
 // Create the JSON response

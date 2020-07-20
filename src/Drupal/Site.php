@@ -6,12 +6,22 @@
 
 namespace RemoteManage\Drupal;
 
-use RemoteManage\Config;
 use RemoteManage\Log;
+use RemoteManage\SysCmd;
 
-class Site
+/* NOTE, THIS VERSION IS HALF-BAKED !! */
+
+class Site // extends base class
 {
     public $siteType = 'drupal';
+    public $cfg;
+    public $volumes = [];
+
+    public function __construct()
+    {
+        // init $this->cfg
+        $this->volumes = ['src/html/sites', 'src'];
+    }
 
     /**
      * Backup a Drupal site, using parameters provided in the POST and local configuration.
@@ -20,46 +30,72 @@ class Site
     {
         Log::msg("Drupal backup is running...");
 
+        $syscmd = new SysCmd();
+
         // Put site into maintenance mode
         $this->maintMode(true);
 
         if (0) {
             // Dump database using tar format (-F t).
             try {
-                execmd('pg_dump -U ' . $cfg['dbuser'] . ' -h ' . $cfg['dbhost'] . ' -p ' . $cfg['dbport'] . ' -x -F t ' . $cfg['dbname'] . ' > ' . $cfg['tmpdir'] . '/' . $cfg['dbname'] . '.sql 2>&1');
+                $syscmd->exec('pg_dump -U ' . $this->cfg['dbuser'] . ' -h ' . $cfg['dbhost'] . ' -p ' . $cfg['dbport'] . ' -x -F t ' . $cfg['dbname'] . ' > ' . $cfg['tmpdir'] . '/' . $cfg['dbname'] . '.sql 2>&1');
             } catch (\Exception $e) {
                 $this->cleanup();
+                return false;
             }
+
+            $this->backupVolumes();
 
             // Tar the files in the PV directory.
             try {
-                execmd('tar rf ' . $cfg['tmpdir'] . '/' . $cfg['databackup'] . '.tar ' . $cfg['datadir'] . ' 2>&1', $pvdir);
+                $syscmd->exec('tar rf ' . $cfg['tmpdir'] . '/' . $cfg['databackup'] . '.tar ' . $cfg['datadir'] . ' 2>&1', $pvdir);
             } catch (\Exception $e) {
                 $this->cleanup();
+                return false;
             }
 
             // Tar the files in the application directory.
             try {
-                execmd('tar rf ' . $cfg['tmpdir'] . '/' . $cfg['appname'] . '.tar src 2>&1', $homedir . '/..');
+                $syscmd->exec('tar rf ' . $cfg['tmpdir'] . '/' . $cfg['appname'] . '.tar src 2>&1', $homedir . '/..');
             } catch (\Exception $e) {
                 $this->cleanup();
+                return false;
             }
 
             // GZ compress all of the temporary files so far.
             try {
-                execmd('gzip -f ' . $cfg['tmpdir'] . '/' . $cfg['s3file'] . ' 2>&1', $cfg['tmpdir']);
+                $syscmd->exec('gzip -f ' . $cfg['tmpdir'] . '/' . $cfg['s3file'] . ' 2>&1', $cfg['tmpdir']);
             } catch (\Exception $e) {
                 $this->cleanup();
+                return false;
             }
 
             // Copy the compressed gz file to S3.
             try {
-                execmd('s3cmd -q --mime-type=application/x-gzip put ' . $cfg['tmpdir'] . '/' . $cfg['s3file'] . '.gz s3://$bucket/' . $cfg['s3file'] . '.gz 2>&1');
+                $syscmd->exec('s3cmd -q --mime-type=application/x-gzip put ' . $cfg['tmpdir'] . '/' . $cfg['s3file'] . '.gz s3://$bucket/' . $cfg['s3file'] . '.gz 2>&1');
             } catch (\Exception $e) {
                 $this->cleanup();
+                return false;
             }
         }
-        $this->maintMode(false);
+
+        $this->cleanup();
+        return true;
+    }
+
+    protected function backupVolumes()
+    {
+        $syscmd = new SysCmd();
+
+        foreach ($this->volumes as $volume) {
+            // Tar the files in the PV directory.
+            try {
+                $syscmd->exec('tar rf ' . $cfg['tmpdir'] . '/' . $cfg['databackup'] . '.tar ' . $cfg['datadir'] . ' 2>&1', $pvdir);
+            } catch (\Exception $e) {
+                $this->cleanup();
+                return false;
+            }
+        }
     }
 
     /**
@@ -80,7 +116,7 @@ class Site
      */
     public static function detect()
     {
-        return is_dir(Config::$homeDir . '/drush') ? true : false;
+        return is_dir(getenv('HOME') . '/drush') ? true : false;
     }
 
     /**
