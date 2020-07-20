@@ -19,6 +19,7 @@ abstract class BaseSite
         $this->syscmd = new SysCmd();
 
         $this->cfg = [
+            'homedir' => getenv('HOME'),
             'dbhost' => '',
             'dbport' => '',
             'dbuser' => '',

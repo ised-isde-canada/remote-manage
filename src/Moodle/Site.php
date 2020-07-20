@@ -25,6 +25,6 @@ class Site extends BaseSite
      */
     public static function detect()
     {
-        return is_dir(getenv('HOME') . '/drush') ? true : false;
+        return is_dir($this->cfg['homedir'] . '/config.php') ? true : false;
     }
 }
