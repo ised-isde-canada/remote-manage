@@ -12,10 +12,24 @@ class Site extends BaseSite
 {
     public function __construct()
     {
-        parent::__construct(); // Call the parent constructor first
-
         $this->siteType = 'moodle';
-        $this->volumes = [];
+
+        // Set the standard configuration parameters
+        $this->cfg['homedir'] = getenv('HOME');
+        $this->cfg['dbhost'] = '';
+        $this->cfg['dbport'] = '';
+        $this->cfg['dbuser'] = '';
+        $this->cfg['dbpass'] = '';
+        $this->cfg['dbname'] = '';
+        $this->cfg['dbbackup'] = 'database.tar';
+        $this->cfg['s3bucket'] = '';
+        $this->cfg['tmpdir'] = '/tmp/' . $this->siteType . '-remote';
+        $this->cfg['volumes'] = ['/abs/path/to/dir'];
+
+        // Set app-specific configuration parameters
+        $this->cfg['drush'] = $this->cfg['homedir'] . '/vendor/bin/drush';
+
+        parent::__construct();
     }
 
     /**
@@ -25,6 +39,6 @@ class Site extends BaseSite
      */
     public static function detect()
     {
-        return is_dir($this->cfg['homedir'] . '/config.php') ? true : false;
+        return file_exists(getenv('HOME') . '/config.php') ? true : false;
     }
 }

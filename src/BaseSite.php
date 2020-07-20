@@ -10,7 +10,7 @@ abstract class BaseSite
 {
     public    $siteType = 'unknown'; // The type of site. Use all lowercase
     public    $cfg = [];             // Configuration data
-    public    $volumes = [];         // List of volumes (directories) to be backed up
+    public    $volumes = [];         // List of volumes (directories) to be backed up - use absolute path!
     public    $inMaintMode = false;  // Flag to indicate that the site is in maintenance mode
     protected $syscmd = null;        // System command object
 
@@ -18,21 +18,23 @@ abstract class BaseSite
     {
         $this->syscmd = new SysCmd();
 
-        $this->cfg = [
-            'homedir' => getenv('HOME'),
-            'dbhost' => '',
-            'dbport' => '',
-            'dbuser' => '',
-            'dbpass' => '',
-            'dbname' => '',
-            'dbbackup' => 'database.tar',
-            'tmpdir' => '/tmp/' . $this->siteType . '-remote',
-            's3bucket' => '',
-        ];
+        // Each app must do this in their constructor:
+        // Set the standard configuration parameters
+        // $this->cfg['homedir'] = getenv('HOME');
+        // $this->cfg['dbhost'] = '';
+        // $this->cfg['dbport'] = '';
+        // $this->cfg['dbuser'] = '';
+        // $this->cfg['dbpass'] = '';
+        // $this->cfg['dbname'] = '';
+        // $this->cfg['dbbackup'] = 'database.tar';
+        // $this->cfg['s3bucket'] = '';
+        // $this->cfg['tmpdir'] = '/tmp/' . $this->siteType . '-remote';
+        // $this->cfg['volumes'] = ['/abs/path/to/dir'];
     }
 
     /**
      * Backup a site.
+     * @return boolean
      */
     public function backup()
     {
@@ -51,6 +53,10 @@ abstract class BaseSite
         return true;
     }
 
+    /**
+     *
+     * @return boolean
+     */
     protected function backupDatabase()
     {
         $db = new Postgres();
@@ -72,16 +78,20 @@ abstract class BaseSite
         return true;
     }
 
+    /**
+     *
+     * @return boolean
+     */
     protected function backupVolumes()
     {
         // Tar the files in each volume directory
         foreach ($this->volumes as $volume) {
             $parentDir = dirname($volume);
-            $dir = basename($volume);
+            $backupDir = basename($volume);
             try {
                 $this->syscmd->exec(sprintf('tar rf %s %s 2>&1',
                     $this->cfg['tmpdir'] . '/' . $volume . '-backup.tar',
-                    $dir,
+                    $backupDir,
                 ), $parentDir);
             }
             catch (\Exception $e) {
@@ -93,6 +103,10 @@ abstract class BaseSite
         return true;
     }
 
+    /**
+     *
+     * @return boolean
+     */
     protected function copyToArchive()
     {
         $s3 = new S3Cmd();
@@ -108,10 +122,17 @@ abstract class BaseSite
         return true;
     }
 
+    /**
+     *
+     * @return boolean
+     */
     protected function createZip()
     {
         try {
-            $this->syscmd->exec('gzip -f ' . $this->cfg['tmpdir'] . '/' . $this->cfg['s3file'] . ' 2>&1', $this->cfg['tmpdir']);
+            $this->syscmd->exec(sprintf('gzip -f %s/%s 2>&1',
+                $this->cfg['tmpdir'],
+                $this->cfg['s3file']
+            ), $this->cfg['tmpdir']);
         }
         catch (\Exception $e) {
             $this->cleanup();
@@ -124,6 +145,7 @@ abstract class BaseSite
     /**
      * Perform a cleanup of any temp files created.
      * Take the site out of maintenance mode.
+     * @return boolean
      */
     public function cleanup()
     {
@@ -169,9 +191,10 @@ abstract class BaseSite
 
     /**
      * Restore a site, using parameters provided in the POST and local configuration.
+     * @return boolean
      */
     public function restore()
     {
-
+        return false;
     }
 }

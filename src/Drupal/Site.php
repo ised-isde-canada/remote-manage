@@ -13,11 +13,24 @@ class Site extends BaseSite
 {
     public function __construct()
     {
-        parent::__construct(); // Call the parent constructor first
-
         $this->siteType = 'drupal';
-        $this->volumes = ['/opt/app-root/src/html/sites'];
+
+        // Set the standard configuration parameters
+        $this->cfg['homedir'] = getenv('HOME');
+        $this->cfg['dbhost'] = '';
+        $this->cfg['dbport'] = '';
+        $this->cfg['dbuser'] = '';
+        $this->cfg['dbpass'] = '';
+        $this->cfg['dbname'] = '';
+        $this->cfg['dbbackup'] = 'database.tar';
+        $this->cfg['s3bucket'] = '';
+        $this->cfg['tmpdir'] = '/tmp/' . $this->siteType . '-remote';
+        $this->cfg['volumes'] = ['/opt/app-root/src/html/sites'];
+
+        // Set app-specific configuration parameters
         $this->cfg['drush'] = $this->cfg['homedir'] . '/vendor/bin/drush';
+
+        parent::__construct();
     }
 
     /**
@@ -27,7 +40,7 @@ class Site extends BaseSite
      */
     public static function detect()
     {
-        return is_dir($this->cfg['homedir'] . '/drush') ? true : false;
+        return is_dir(getenv('HOME') . '/drush') ? true : false;
     }
 
     /**
