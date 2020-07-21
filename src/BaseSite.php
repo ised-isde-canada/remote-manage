@@ -31,30 +31,27 @@ abstract class BaseSite
 
         // Put site into maintenance mode.
         $this->maintMode(true);
+
         // Fails if there is neither a database or files to be backed-up.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
         // Backup database, if any.
-        if (!empty($this->cfg['dbname']))
-        {
+        if (!empty($this->cfg['dbname'])) {
             $success = $this->backupDatabase();
         }
 
         // Backup files, if any.
-        if ($success && !empty($this->volumes))
-        {
+        if ($success && !empty($this->volumes)) {
             $success = $this->backupVolumes();
         }
 
         // Create GZIP file.
-        if ($success)
-        {
+        if ($success) {
             $success = $this->createZip();
         }
 
         // Transfer GZIP file to S3.
-        if ($success)
-        {
+        if ($success) {
             $success = $this->copyToArchive();
         }
 
@@ -75,6 +72,7 @@ abstract class BaseSite
             'host' => $this->cfg['dbhost'],
             'port' => $this->cfg['dbport'],
             'user' => $this->cfg['dbuser'],
+            'pass' => $this->cfg['dbpass'],
             'name' => $this->cfg['dbname'],
             'file' => 'database.tar',
         ]);
@@ -169,6 +167,7 @@ abstract class BaseSite
     /**
      * Static function to detect what type of site this is.
      * Note: Each site type must override this method.
+     * This would be an abstract function if PHP would allow it in combination with static.
      * @return string 'unknown'.
      */
     public static function detect()
@@ -178,22 +177,12 @@ abstract class BaseSite
 
     /**
      * Take the site in or out of maintenance mode.
+     * NOTE: The class which extends this base class must
+     * define how maintMode is implemented. It should also
+     * maintain the state of $this->inMaintMode.
      * @param boolean $maint
      */
-    public function maintMode($maint=true)
-    {
-        if ($maint) {
-            if (!$this->inMaintMode) {
-                Log::msg("Enter site maintenance mode");
-            }
-        }
-        else {
-            if ($this->inMaintMode) {
-                Log::msg("Exit site maintenance mode");
-            }
-        }
-        $this->inMaintMode = $maint;
-    }
+    abstract public function maintMode($maint=true);
 
     /**
      * Restore a site, using parameters provided in the POST and local configuration.

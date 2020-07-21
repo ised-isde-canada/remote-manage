@@ -24,11 +24,30 @@ include_once "helpers.php";
 use RemoteManage\Log;
 use RemoteManage\S3Cmd;
 
-// TEMPORARY: Load .env file which may accompany this package.
+// Load .env file which may accompany this package.
 if (($env = file(__DIR__ . '/.env')) !== false) {
     foreach ($env as $e) {
         putenv(trim($e));
     }
+}
+
+// Get S3 credentials and settings if provided via POST (only).
+// These would override any settings from the .env file above.
+
+if (isset($_POST['aws_access_key'])) {
+    putenv('AWS_ACCESS_KEY_ID=' . $_POST['aws_access_key']);
+}
+
+if (isset($_POST['aws_secret_access_key'])) {
+    putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);
+}
+
+if (isset($_POST['aws_s3_bucket'])) {
+    putenv('AWS_S3_BUCKET=' . $_POST['aws_s3_bucket']);
+}
+
+if (isset($_POST['aws_s3_region'])) {
+    putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
 }
 
 // Get a site object. This will determine the type of site.

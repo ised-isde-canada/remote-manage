@@ -14,29 +14,31 @@ class Site extends BaseSite
 {
     public function __construct()
     {
-        $this->siteType = 'drupal';
+        parent::__construct();
 
-        // Set the standard configuration parameters
-        $this->cfg['homedir'] = getenv('HOME');
-        $this->cfg['dbhost'] = '';
-        $this->cfg['dbport'] = '';
-        $this->cfg['dbuser'] = '';
-        $this->cfg['dbpass'] = '';
-        $this->cfg['dbname'] = '';
-        $this->cfg['dbbackup'] = 'database.tar';
-        $this->cfg['tmpdir'] = '/tmp/' . $this->siteType . '-remote';
-        $this->cfg['volumes'] = ['/opt/app-root/src/html/sites'];
+        $this->siteType = 'drupal';
+        $this->sitesDir = $this->cfg['homedir'] . '/html/sites';
+
+        // Get the database connection parameters from the Drupal settings file if it exists
+        if (file_exists("$this->sitesDir/default/settings.php")) {
+            require "$this->sitesDir/default/settings.php";
+            $this->cfg['dbhost'] = $databases['default']['default']['host'];
+            $this->cfg['dbport'] = $databases['default']['default']['port'];
+            $this->cfg['dbuser'] = $databases['default']['default']['username'];
+            $this->cfg['dbpass'] = $databases['default']['default']['password'];
+            $this->cfg['dbname'] = $databases['default']['default']['database'];
+        }
+
+        // Define the volumes for backup and restore (must use absolute path)
+        $this->cfg['volumes'] = [$this->sitesDir];
 
         // Set app-specific configuration parameters
         $this->cfg['drush'] = $this->cfg['homedir'] . '/vendor/bin/drush';
-
-        parent::__construct();
     }
 
     /**
      * Static function to detect if this is a Drupal site.
-     * Returns true or false.
-     * @return boolean
+     * @return boolean If Drupal (true), otherwise not Drupal (false).
      */
     public static function detect()
     {
@@ -44,8 +46,8 @@ class Site extends BaseSite
     }
 
     /**
-     * Take the site in or out of maintenance mode.
-     * @param boolean $maint
+     * Take the site in or out of maintenance mode if not already in that mode.
+     * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
      */
     public function maintMode($maint=true)
     {
