@@ -8,6 +8,7 @@ namespace RemoteManage\Drupal;
 
 use RemoteManage\BaseSite;
 use RemoteManage\Log;
+use RemoteManage\SysCmd;
 
 class Site extends BaseSite
 {
@@ -51,16 +52,16 @@ class Site extends BaseSite
         if ($maint) {
             if (!$this->inMaintMode) {
                 Log::msg("Enter Drupal maintenance mode");
-                $this->syscmd->exec($this->cfg['drush'] . ' state:set system.maintenance_mode 1 --input-format=integer');
-                $this->syscmd->exec($this->cfg['drush'] . ' cr');
+                SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 1 --input-format=integer');
+                SysCmd::exec($this->cfg['drush'] . ' cr');
                 $this->inMaintMode = true;
             }
         }
         else {
             if ($this->inMaintMode) {
                 Log::msg("Exit Drupal maintenance mode");
-                $this->syscmd->exec($this->cfg['drush'] . ' state:set system.maintenance_mode 0 --input-format=integer');
-                $this->syscmd->exec($this->cfg['drush'] . ' cr');
+                SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 0 --input-format=integer');
+                SysCmd::exec($this->cfg['drush'] . ' cr');
                 $this->inMaintMode = false;
             }
         }

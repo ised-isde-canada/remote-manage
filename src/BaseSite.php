@@ -12,11 +12,9 @@ abstract class BaseSite
     public    $cfg = [];             // Configuration data
     public    $volumes = [];         // List of volumes (directories) to be backed up - use absolute path!
     public    $inMaintMode = false;  // Flag to indicate that the site is in maintenance mode
-    protected $syscmd = null;        // System command object
 
     public function __construct()
     {
-        $this->syscmd = new SysCmd();
         $this->cfg['homedir'] = getenv('HOME');
         $this->cfg['tmpdir'] = sys_get_temp_dir() . '/' . uniqid();
         $this->cfg['dbport'] = '5432';
@@ -99,7 +97,7 @@ abstract class BaseSite
             $parentDir = dirname($volume);
             $backupDir = basename($volume);
             try {
-                $this->syscmd->exec(sprintf('tar rf %s %s 2>&1',
+                SysCmd::exec(sprintf('tar rf %s %s 2>&1',
                     $this->cfg['tmpdir'] . '/' . $volume . '-backup.tar',
                     $backupDir,
                 ), $parentDir);
@@ -139,7 +137,7 @@ abstract class BaseSite
     protected function createZip()
     {
         try {
-            $this->syscmd->exec(sprintf('gzip -f %s/%s 2>&1',
+            SysCmd::exec(sprintf('gzip -f %s/%s 2>&1',
                 $this->cfg['tmpdir'],
                 $this->cfg['s3file']
             ), $this->cfg['tmpdir']);
@@ -160,7 +158,7 @@ abstract class BaseSite
     public function cleanup()
     {
         // Remove the temporary directory
-        $this->syscmd->exec('rm -rf ' . $this->cfg['tmpdir']);
+        SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
 
         // Take site out of maintenance mode
         $this->maintMode(false);
