@@ -17,25 +17,9 @@ abstract class BaseSite
     public function __construct()
     {
         $this->syscmd = new SysCmd();
-        $this->homedir = getenv('HOME');
-        $this->tmpdir = sys_get_temp_dir() . '/' . uniqid();
-        $this->dbbackup = 'database.tar';
-        if (empty($this->dbport))
-        {
-            $this->dbport = '5432';
-        }
-
-        // Each app must do this in their constructor:
-        // Set the standard configuration parameters
-        // $this->cfg['homedir'] = getenv('HOME');
-        // $this->cfg['dbhost'] = '';
-        // $this->cfg['dbport'] = '';
-        // $this->cfg['dbuser'] = '';
-        // $this->cfg['dbpass'] = '';
-        // $this->cfg['dbname'] = '';
-        // $this->cfg['dbbackup'] = 'database.tar';
-        // $this->cfg['tmpdir'] = '/tmp/' . $this->siteType . '-remote';
-        // $this->cfg['volumes'] = ['/abs/path/to/dir'];
+        $this->cfg['homedir'] = getenv('HOME');
+        $this->cfg['tmpdir'] = sys_get_temp_dir() . '/' . uniqid();
+        $this->cfg['dbport'] = '5432';
     }
 
     /**
@@ -89,16 +73,14 @@ abstract class BaseSite
     {
         $db = new Postgres();
 
-        try {
-            $db->backup([
-                'host' => $this->cfg['dbhost'],
-                'port' => $this->cfg['dbport'],
-                'user' => $this->cfg['dbuser'],
-                'name' => $this->cfg['dbname'],
-                'file' => $this->cfg['dbbackup'],
-            ]);
-        }
-        catch (\Exception $e) {
+        $success = $db->backup([
+            'host' => $this->cfg['dbhost'],
+            'port' => $this->cfg['dbport'],
+            'user' => $this->cfg['dbuser'],
+            'name' => $this->cfg['dbname'],
+            'file' => 'database.tar',
+        ]);
+        if (!$success) {
             $this->cleanup();
             return false;
         }
