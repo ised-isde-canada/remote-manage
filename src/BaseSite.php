@@ -17,6 +17,13 @@ abstract class BaseSite
     public function __construct()
     {
         $this->syscmd = new SysCmd();
+        $this->homedir = getenv('HOME');
+        $this->tmpdir = sys_get_temp_dir() . '/' . uniqid();
+        $this->dbbackup = 'database.tar';
+        if (empty($this->dbport))
+        {
+            $this->dbport = '5432';
+        }
 
         // Each app must do this in their constructor:
         // Set the standard configuration parameters
@@ -33,23 +40,45 @@ abstract class BaseSite
 
     /**
      * Backup a site.
-     * @return boolean
+     * Will abort if any part of the backup fails.
+     * @return boolean Success (true), Failure (false).
      */
     public function backup()
     {
         Log::msg("Backup process is running...");
 
-        // Put site into maintenance mode
+        // Put site into maintenance mode.
         $this->maintMode(true);
+        // Fails if there is neither a database or files to be backed-up.
+        $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
-        $this->backupDatabase();
-        $this->backupVolumes();
-        $this->createZip();
-        $this->copyToArchive();
+        // Backup database, if any.
+        if (!empty($this->cfg['dbname']))
+        {
+            $success = $this->backupDatabase();
+        }
+
+        // Backup files, if any.
+        if ($success && !empty($this->volumes))
+        {
+            $success = $this->backupVolumes();
+        }
+
+        // Create GZIP file.
+        if ($success)
+        {
+            $success = $this->createZip();
+        }
+
+        // Transfer GZIP file to S3.
+        if ($success)
+        {
+            $success = $this->copyToArchive();
+        }
 
         $this->cleanup();
 
-        return true;
+        return $success;
     }
 
     /**
@@ -66,7 +95,7 @@ abstract class BaseSite
                 'port' => $this->cfg['dbport'],
                 'user' => $this->cfg['dbuser'],
                 'name' => $this->cfg['dbname'],
-                'file' => $this->cfg['tmp'] . '/' . $this->cfg['dbbackup'],
+                'file' => $this->cfg['dbbackup'],
             ]);
         }
         catch (\Exception $e) {
@@ -160,8 +189,7 @@ abstract class BaseSite
     /**
      * Static function to detect what type of site this is.
      * Note: Each site type must override this method.
-     * Returns true or false.
-     * @return boolean
+     * @return string 'unknown'.
      */
     public static function detect()
     {
@@ -177,15 +205,14 @@ abstract class BaseSite
         if ($maint) {
             if (!$this->inMaintMode) {
                 Log::msg("Enter site maintenance mode");
-                $this->inMaintMode = true;
             }
         }
         else {
             if ($this->inMaintMode) {
                 Log::msg("Exit site maintenance mode");
-                $this->inMaintMode = false;
             }
         }
+        $this->inMaintMode = $maint;
     }
 
     /**

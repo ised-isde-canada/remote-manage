@@ -22,7 +22,7 @@ class SysCmd
         }
 
         Log::msg($cmd);
-        exec($cmd, $this->output, $this->rc);
+        exec($cmd, $output, $this->rc);
 
         // Restore current directory back to its original state, if needed.
         if (!empty($dir)) {
@@ -32,6 +32,10 @@ class SysCmd
         // On error, throw an exception
         if ($this->rc !== 0) {
             Log::msg("ERROR: Command execution failure. Return code=$this->rc");
+            foreach($output as $msg)
+            {
+                Log::msg($msg);
+            }
             throw new \Exception("Command execution failure. Return code=$this->rc");
         }
     }
