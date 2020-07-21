@@ -17,6 +17,7 @@ class SysCmd
         // Change into specified directory if specified.
         if (!empty($dir)) {
             $cwd = getcwd();
+            Log::msg("chdir $dir");
             chdir($dir);
         }
 
@@ -28,6 +29,7 @@ class SysCmd
 
         // Restore current directory back to its original state, if needed.
         if (!empty($dir)) {
+            Log::msg("chdir $cwd");
             chdir($cwd);
         }
 

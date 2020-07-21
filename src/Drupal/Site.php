@@ -30,7 +30,7 @@ class Site extends BaseSite
         }
 
         // Define the volumes for backup and restore (must use absolute path)
-        $this->cfg['volumes'] = [$this->sitesDir];
+        $this->volumes = [$this->sitesDir];
 
         // Set app-specific configuration parameters
         $this->cfg['drush'] = $this->cfg['homedir'] . '/vendor/bin/drush';

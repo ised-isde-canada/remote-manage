@@ -33,6 +33,7 @@ class Postgres
             ));
         }
         catch (\Exception $e) {
+            Log::msg("Caught exception from pg_dump");
             $this->removePassFile();
             return false;
         }

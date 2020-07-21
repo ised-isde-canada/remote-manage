@@ -9,9 +9,11 @@ namespace RemoteManage;
 abstract class BaseSite
 {
     public    $siteType = 'unknown'; // The type of site. Use all lowercase
+    public    $appName = 'unknown';  // The application name for this site
     public    $cfg = [];             // Configuration data
     public    $volumes = [];         // List of volumes (directories) to be backed up - use absolute path!
     public    $inMaintMode = false;  // Flag to indicate that the site is in maintenance mode
+    private   $backupFiles = [];     // List of individual backup files which will be zipped up at the end
 
     public function __construct()
     {
@@ -77,9 +79,13 @@ abstract class BaseSite
             'file' => 'database.tar',
         ]);
         if (!$success) {
+            Log::msg("Database backup failed!");
             $this->cleanup();
             return false;
         }
+
+        // Add this file to the list
+        $this->backupFiles[] = 'database.tar';
 
         return true;
     }
@@ -92,11 +98,12 @@ abstract class BaseSite
     {
         // Tar the files in each volume directory
         foreach ($this->volumes as $volume) {
+            Log::msg("Backup volume $volume");
             $parentDir = dirname($volume);
             $backupDir = basename($volume);
             try {
-                SysCmd::exec(sprintf('tar rf %s %s 2>&1',
-                    $this->cfg['tmpdir'] . '/' . $volume . '-backup.tar',
+                SysCmd::exec(sprintf('tar cf %s %s 2>&1',
+                    $this->cfg['tmpdir'] . '/' . $backupDir . '-backup.tar',
                     $backupDir,
                 ), $parentDir);
             }
@@ -104,6 +111,8 @@ abstract class BaseSite
                 $this->cleanup();
                 return false;
             }
+            // Add this file to the list
+            $this->backupFiles[] = $volume . '-backup.tar';
         }
 
         return true;
@@ -134,10 +143,27 @@ abstract class BaseSite
      */
     protected function createZip()
     {
+        // Make sure we have some backup files
+        if (empty($this->backupFiles)) {
+            return false;
+        }
+
+        // Create a tar file containing all the backup files
         try {
-            SysCmd::exec(sprintf('gzip -f %s/%s 2>&1',
-                $this->cfg['tmpdir'],
-                $this->cfg['s3file']
+            SysCmd::exec(sprintf('tar cf %s %s',
+                $this->cfg['backupfile'],
+                join(' ', $this->backupFiles)
+            ), $this->cfg['tmpdir']);
+        }
+        catch (\Exception $e) {
+            $this->cleanup();
+            return false;
+        }
+
+        // Now gzip it up
+        try {
+            SysCmd::exec(sprintf('gzip -f %s 2>&1',
+                $this->cfg['backupfile']
             ), $this->cfg['tmpdir']);
         }
         catch (\Exception $e) {
@@ -191,5 +217,15 @@ abstract class BaseSite
     public function restore()
     {
         return false;
+    }
+
+    /**
+     * Set the application name for this site, and any other configuration parameters that are based on the name.
+     * @param string $name
+     */
+    public function setAppName($name)
+    {
+        $this->appName = $name;
+        $this->cfg['backupfile'] = $name . '-' . date('Y-m-d_H-i') . '.tar';
     }
 }

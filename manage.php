@@ -55,6 +55,11 @@ $site = getSite();
 
 Log::msg('Site type is: ' . $site->siteType);
 
+// Set the site's application name from the request
+if (isset($_REQUEST['app_name'])) {
+    $site->setAppName($_REQUEST['app_name']);
+}
+
 // Get the requested operation and dispatch.
 switch ($_REQUEST['operation']) {
     case 'backup':
