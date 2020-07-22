@@ -146,16 +146,17 @@ abstract class BaseSite
     protected function copyToArchive()
     {
         $s3 = new S3Cmd();
-
-// not ready yet...
-//         try {
-//             $s3->put();
-//         }
-//         catch (\Exception $e) {
-//             $this->cleanup();
-//             return false;
-//         }
-
+        if($s3) {
+            try {
+                $s3->copy($this->backupTarFile);
+            }
+            catch (\Exception $e) {
+                $this->cleanup();
+                return false;
+            }
+        } else {
+            return false;
+        }
         return true;
     }
 

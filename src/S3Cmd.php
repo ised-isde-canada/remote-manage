@@ -10,45 +10,50 @@ use Aws\S3\Exception\S3Exception;
  */
 class S3Cmd
 {
-    function getList()
+    private $s3_bucket = '';        // Name of S3 bucket containing backup files
+    private $s3_region = '';        // Region of S3 bucket
+    private $s3 = null;             // S3 client
+
+    public function __construct()
     {
         $error = false;
 
         if (!getenv('AWS_ACCESS_KEY_ID')) {
-            Log::msg('AWS_ACCESS_KEY_ID environemnt variable is not set.');
+            Log::msg('AWS_ACCESS_KEY_ID environment variable is not set.');
             $error = true;
         }
         if (!getenv('AWS_SECRET_ACCESS_KEY')) {
-            Log::msg('AWS_SECRET_ACCESS_KEY environemnt variable is not set.');
+            Log::msg('AWS_SECRET_ACCESS_KEY environment variable is not set.');
             $error = true;
         }
-        if (! $s3_bucket = getenv('AWS_S3_BUCKET')) {
-            Log::msg('AWS_S3_BUCKET environemnt variable is not set.');
+        if (! $this->s3_bucket = getenv('AWS_S3_BUCKET')) {
+            Log::msg('AWS_S3_BUCKET environment variable is not set.');
             $error = true;
         }
-        if (! $s3_region = getenv('AWS_S3_REGION')) {
-            Log::msg('AWS_S3_REGION environemnt variable is not set.');
+        if (! $this->s3_region = getenv('AWS_S3_REGION')) {
+            Log::msg('AWS_S3_REGION environment variable is not set.');
             $error = true;
         }
-
-        if ($error) {
-            return false;
-        }
-
+        Log::msg("s3_bucket is $s3_bucket");
         Log::msg("s3_region is $s3_region");
 
-        $s3 = new S3Client([
+        $this->s3 = new S3Client([
             'version' => 'latest',
             'region'  => $s3_region,
         ]);
 
+        return !$error;
+    }
+
+    function getList()
+    {
         try {
-            $result = $s3->listObjectsV2([
-                'Bucket' => $s3_bucket
+            $result = $this->s3->listObjectsV2([
+                'Bucket' => $this->s3_bucket
             ]);
         }
         catch(S3Exception $e) {
-            Log::msg('S3 Exception!');
+            Log::msg('S3 Exception on listObjectsV2!');
             return false;
         }
 
@@ -61,4 +66,20 @@ class S3Cmd
 
         return true;
     }
+
+    function copy($backupFile) {
+        try {
+            $result = $this->s3->putObject([
+                'Bucket' => $this->s3_bucket,
+                'Key' => $backupFile,
+            ]);
+        }
+        catch(S3Exception $e) {
+            Log::msg('S3 Exception on putObject!');
+            return false;
+        }
+
+        return true;
+    }
+
 }
