@@ -15,6 +15,50 @@
  * Please follow the PHP Standards Recommendations at https://www.php-fig.org/psr/
  */
 
+ // If using command line...
+ $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
+if ($cli) {
+    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 'l' => 's3list', 'd' => 'debug'];
+    $params = getopt(join(array_keys($options)), array_values($options));
+
+    // If invalid or missing parameter, display help.
+    if (empty($params)) {
+        $params = ['help' => false];
+    }
+
+    // Only process the first passed parameter.
+    reset($params);
+    $operation = key($params);
+    
+    // Get value. If none, will be false.
+    $file = $params[$operation];
+
+    // Convert to long form of option if short form was specified.
+    if (isset($options[$operation])) {
+        $operation = $options[$operation];
+    }
+
+    // Display help.
+    if ($operation == 'help') {
+        $help = 'Manage v1.0 - July 2020' . PHP_EOL;
+        $help .= 'Written by: Duncan Sutter, Samantha Tripp and Michael Milette' . PHP_EOL;
+        $help .= 'Purpose: Backup or restore a website.' . PHP_EOL;
+        $help .= 'Example: php manage.php --backup' . PHP_EOL;
+        $help .= PHP_EOL;
+        $help .= 'Must only specify one of the following parameters:' . PHP_EOL;
+        $help .= "--help|-h              Display's this information." . PHP_EOL;
+        $help .= "--backup|-b            Backup this site" . PHP_EOL;
+        $help .= "--restore|-r filename  Restore the specified backup file." . PHP_EOL;
+        $help .= "--list|-l              List available backups." . PHP_EOL;
+        fwrite(STDERR, $help . PHP_EOL);
+        $errcode = 1;
+        exit($errcode);
+    }
+}
+else {
+    $operation = $_REQUEST['operation'];
+}
+
 // Use the composer PSR-4 autoloader
 $loader = require 'vendor/autoload.php';
 $loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
@@ -61,7 +105,7 @@ if (isset($_REQUEST['app_name'])) {
 }
 
 // Get the requested operation and dispatch.
-switch ($_REQUEST['operation']) {
+switch ($operation) {
     case 'backup':
         $site->backup();
         break;
@@ -84,5 +128,4 @@ $json = [];
 $json['messages'] = Log::get();
 
 // Exit with appropriate HTTP header and a valid JSON response.
-header('Content-type: application/json; charset=utf-8');
 echo json_encode($json, JSON_PRETTY_PRINT) . PHP_EOL;

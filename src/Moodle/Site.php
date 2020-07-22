@@ -8,23 +8,24 @@ namespace RemoteManage\Moodle;
 
 use RemoteManage\BaseSite;
 use RemoteManage\Log;
+use RemoteManage\SysCmd;
 
 class Site extends BaseSite
 {
     public function __construct()
     {
+        parent::__construct();
+
         $this->siteType = 'moodle';
-        $this->filedir = dirname(__FILE__);
 
         // Set the standard configuration parameters
         $this->cfg['dbhost'] = getenv('DBHOST');     // E.g. 'localhost' or 'db.isp.com' or IP.
         $this->cfg['dbuser'] = getenv('DBUSERNAME'); // Database username.
         $this->cfg['dbpass'] = getenv('DBPASSWORD'); // Database password.
         $this->cfg['dbname'] = getenv('DBNAME');     // Database name.
-        $this->cfg['moodledata'] = getenv('MODOLE_DATA_DIR');
-        $this->cfg['volumes'] = [$this->moodledata, $this->homedir];
+        $this->cfg['volumes'] = [getenv('MODOLE_DATA_DIR'), $this->homedir];
 
-        parent::__construct();
+
     }
 
     /**
@@ -33,7 +34,7 @@ class Site extends BaseSite
      */
     public static function detect()
     {
-        return file_exists(getenv('HOME') . '/config.php');
+        return file_exists(getenv('HOME') . '/lang/en/moodle.php');
     }
 
     /**
@@ -42,19 +43,22 @@ class Site extends BaseSite
      */
     public function maintMode($maint=true)
     {
-        parent::maintMode($maint);
         if ($maint) {
             if (!$this->inMaintMode) {
+                Log::msg("Enter maintenance mode");
                 // Enable maintenance mode.
-                execmd('cp ' . $this->filedir . '/climaintenance.html .', $this->moodledata);
+                SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->moodledata);
                 // Purge cache.
-                execmd('/usr/local/bin/php -f admin/cli/purge_caches.php', $homedir);
+                SysCmd::exec('/usr/local/bin/php -f admin/cli/purge_caches.php', $homedir);
+                $this->inMaintMode = true;
             }
         }
         else {
             if ($this->inMaintMode) {
+                Log::msg("Exit maintenance mode");
                 // Disable maintenance mode.
-                exec('rm ' . $this->moodledata . '/climaintenance.html');
+                SysCmd::exec('rm ' . $this->moodledata . '/climaintenance.html');
+                $this->inMaintMode = false;
             }
         }
     }
