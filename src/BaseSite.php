@@ -10,9 +10,11 @@ abstract class BaseSite
 {
     public    $siteType = 'unknown';     // The type of site. Use all lowercase
     public    $appName = 'application';  // The application name for this site
+    public    $appEnv = 'dev';           // Environment: dev, test, qa, prod
     public    $cfg = [];                 // Configuration data
     public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
     public    $inMaintMode = false;      // Flag to indicate that the site is in maintenance mode
+    private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time)
     private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
 
     public function __construct()
@@ -20,13 +22,7 @@ abstract class BaseSite
         $this->cfg['homedir'] = getenv('HOME');
         $this->cfg['tmpdir'] = sys_get_temp_dir() . '/' . uniqid();
         $this->cfg['dbport'] = '5432';
-        $this->cfg['backupfile'] = 'unknown.tar'; // Name of the backup file. Need to do better here! But the app needs to set this.
         mkdir($this->cfg['tmpdir']);
-
-        // I know this seems redundant, and we'll probably come up with something better. For now, we need a consistent way
-        // to set the name of the backup file. When the main script creates a site instance, it will set the application name
-        // using this method.
-        $this->setAppName($this->appName);
     }
 
     /**
@@ -37,6 +33,23 @@ abstract class BaseSite
     public function backup()
     {
         Log::msg("Backup process is running...");
+
+        // Use the current date and time to determine backup type as one of: D (daily), W (weekly), M (monthly).
+        $backupType = 'D'; // Default to Daily
+        if (date('j') == 1) { // First day of the month
+            $backupType = 'M';
+        }
+        else if (date('w') == 0) { // Sunday
+            $backupType = 'W';
+        }
+
+        // Set the name of the backup tar file.
+        $this->backupTarFile = sprintf('%s-%s-%s-%s.tar',
+            $this->appName,
+            $this->appEnv,
+            date('Y-m-d_H-i'),
+            $backupType
+        );
 
         // Put site into maintenance mode.
         $this->maintMode(true);
@@ -160,7 +173,7 @@ abstract class BaseSite
         // Create a tar file containing all the backup files
         try {
             SysCmd::exec(sprintf('tar cf %s %s',
-                $this->cfg['backupfile'],
+                $this->backupTarFile,
                 join(' ', $this->backupFiles)
             ), $this->cfg['tmpdir']);
         }
@@ -172,13 +185,16 @@ abstract class BaseSite
         // Now gzip it up
         try {
             SysCmd::exec(sprintf('gzip -f %s 2>&1',
-                $this->cfg['backupfile']
+                $this->backupTarFile
             ), $this->cfg['tmpdir']);
         }
         catch (\Exception $e) {
             $this->cleanup();
             return false;
         }
+
+        // Update the name now that it's zipped
+        $this->backupTarFile .= '.gz';
 
         return true;
     }
@@ -226,15 +242,5 @@ abstract class BaseSite
     public function restore()
     {
         return false;
-    }
-
-    /**
-     * Set the application name for this site, and any other configuration parameters that are based on the name.
-     * @param string $name
-     */
-    public function setAppName($name)
-    {
-        $this->appName = $name;
-        $this->cfg['backupfile'] = $name . '-' . date('Y-m-d_H-i') . '.tar';
     }
 }

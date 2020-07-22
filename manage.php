@@ -100,8 +100,17 @@ $site = getSite();
 Log::msg('Site type is: ' . $site->siteType);
 
 // Set the site's application name from the request
+/*
+TODO: Set the default based on environment vars
+Here are some OpenShift vars from the Drupal environment. App name is "manage"
+OPENSHIFT_BUILD_SOURCE=https://github.com/dsutter-gc/manage-site-wxt.git
+OPENSHIFT_BUILD_NAME=manage-30
+OPENSHIFT_BUILD_COMMIT=32724cf94432a776c510f53f49240f0edc810de6
+OPENSHIFT_BUILD_NAMESPACE=ciodrcoe-dev
+OPENSHIFT_BUILD_REFERENCE=ised
+ */
 if (isset($_REQUEST['app_name'])) {
-    $site->setAppName($_REQUEST['app_name']);
+    $site->appName = $_REQUEST['app_name'];
 }
 
 // Get the requested operation and dispatch.
