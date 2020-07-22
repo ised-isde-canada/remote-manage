@@ -72,6 +72,42 @@ class Postgres
     }
 
     /**
+     * Drop the database tables.
+     * @param array $db
+     */
+    public function dropTables($db)
+    {
+        // Establish conection to database.
+        $conn = @pg_connect(sprintf('host=%s port=%s dbname=%s user=%s password=%s'),
+            $db['host'],
+            $db['port'],
+            $db['name'],
+            $db['user'],
+            $db['pass']
+        );
+        if ($conn === false) {
+            Log::msg("Failed to connect to database $dbname.");
+            return false;
+        }
+
+        $result = pg_query($conn, 'select relname from pg_stat_user_tables order by relname;');;
+        if (empty($result)) {
+            // No tables found in the database.
+            Log::msg("Database $dbname was already empty.");
+        } else {
+            // Loop through list of tables dropping them.
+            Log::msg("Dropping tables in database $dbname.");
+            while ($table = pg_fetch_row($result)) {
+                pg_query($conn, 'DROP TABLE IF EXISTS $table[0]');
+            }
+        }
+
+        pg_close($conn);
+
+        return true;
+    }
+
+    /**
      * Create the .pgpass file which holds the database credentials.
      * @param array $db
      */
