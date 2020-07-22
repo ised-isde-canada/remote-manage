@@ -27,19 +27,23 @@ class SysCmd
         // Save the last return code in case the caller wants to retrieve it.
         self::$last_rc = $rc;
 
+        // On error, collect the output in the logs.
+        // We will throw an exception after restoring the current directory.
+        if ($rc !== 0) {
+            Log::msg("ERROR: Command execution failure. Return code=$rc");
+            foreach($output as $msg) {
+                Log::msg($msg);
+            }
+        }
+
         // Restore current directory back to its original state, if needed.
         if (!empty($dir)) {
             Log::msg("chdir $cwd");
             chdir($cwd);
         }
 
-        // On error, throw an exception
+        // On error, throw an exception.
         if ($rc !== 0) {
-            Log::msg("ERROR: Command execution failure. Return code=$rc");
-            foreach($output as $msg)
-            {
-                Log::msg($msg);
-            }
             throw new \Exception("Command execution failure. Return code=$rc");
         }
 

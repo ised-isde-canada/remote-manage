@@ -29,7 +29,7 @@ if ($cli) {
     // Only process the first passed parameter.
     reset($params);
     $operation = key($params);
-    
+
     // Get value. If none, will be false.
     $file = $params[$operation];
 
@@ -121,6 +121,13 @@ switch ($operation) {
 
     default:
         Log::msg("ERROR: The operation is either missing or invalid.");
+}
+
+if ($cli) {
+    foreach (Log::get() as $message) {
+        echo $message . PHP_EOL;
+    }
+    exit;
 }
 
 // Create the JSON response

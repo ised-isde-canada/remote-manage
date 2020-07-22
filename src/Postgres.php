@@ -20,6 +20,7 @@ class Postgres
      */
     public function backup($db)
     {
+        $site = getSite();
         $this->createPassFile($db);
 
         // Dump database using tar format (-F t).
@@ -30,7 +31,7 @@ class Postgres
                 $db['user'],
                 $db['name'],
                 $db['file']
-            ));
+            ), $site->cfg['tmpdir']);
         }
         catch (\Exception $e) {
             Log::msg("Caught exception from pg_dump");
@@ -49,6 +50,7 @@ class Postgres
      */
     public function restore($db)
     {
+        $site = getSite();
         $this->createPassFile($db);
 
         try {
@@ -58,7 +60,7 @@ class Postgres
                 $db['user'],
                 $db['name'],
                 $db['file']
-            ));
+            ), $site->cfg['tmpdir']);
         }
         catch (\Exception $e) {
             $this->removePassFile();

@@ -8,18 +8,25 @@ namespace RemoteManage;
 
 abstract class BaseSite
 {
-    public    $siteType = 'unknown'; // The type of site. Use all lowercase
-    public    $appName = 'unknown';  // The application name for this site
-    public    $cfg = [];             // Configuration data
-    public    $volumes = [];         // List of volumes (directories) to be backed up - use absolute path!
-    public    $inMaintMode = false;  // Flag to indicate that the site is in maintenance mode
-    private   $backupFiles = [];     // List of individual backup files which will be zipped up at the end
+    public    $siteType = 'unknown';     // The type of site. Use all lowercase
+    public    $appName = 'application';  // The application name for this site
+    public    $cfg = [];                 // Configuration data
+    public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
+    public    $inMaintMode = false;      // Flag to indicate that the site is in maintenance mode
+    private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
 
     public function __construct()
     {
         $this->cfg['homedir'] = getenv('HOME');
         $this->cfg['tmpdir'] = sys_get_temp_dir() . '/' . uniqid();
         $this->cfg['dbport'] = '5432';
+        $this->cfg['backupfile'] = 'unknown.tar'; // Name of the backup file. Need to do better here! But the app needs to set this.
+        mkdir($this->cfg['tmpdir']);
+
+        // I know this seems redundant, and we'll probably come up with something better. For now, we need a consistent way
+        // to set the name of the backup file. When the main script creates a site instance, it will set the application name
+        // using this method.
+        $this->setAppName($this->appName);
     }
 
     /**
@@ -101,9 +108,10 @@ abstract class BaseSite
             Log::msg("Backup volume $volume");
             $parentDir = dirname($volume);
             $backupDir = basename($volume);
+            $backupFile = "$backupDir-backup.tar";
             try {
                 SysCmd::exec(sprintf('tar cf %s %s 2>&1',
-                    $this->cfg['tmpdir'] . '/' . $backupDir . '-backup.tar',
+                    $this->cfg['tmpdir'] . '/' . $backupFile,
                     $backupDir,
                 ), $parentDir);
             }
@@ -112,7 +120,7 @@ abstract class BaseSite
                 return false;
             }
             // Add this file to the list
-            $this->backupFiles[] = $volume . '-backup.tar';
+            $this->backupFiles[] = $backupFile;
         }
 
         return true;
@@ -126,13 +134,14 @@ abstract class BaseSite
     {
         $s3 = new S3Cmd();
 
-        try {
-            $s3->put();
-        }
-        catch (\Exception $e) {
-            $this->cleanup();
-            return false;
-        }
+// not ready yet...
+//         try {
+//             $s3->put();
+//         }
+//         catch (\Exception $e) {
+//             $this->cleanup();
+//             return false;
+//         }
 
         return true;
     }
