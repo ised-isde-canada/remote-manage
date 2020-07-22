@@ -135,4 +135,5 @@ $json = [];
 $json['messages'] = Log::get();
 
 // Exit with appropriate HTTP header and a valid JSON response.
+header('Content-type: application/json; charset=utf-8');
 echo json_encode($json, JSON_PRETTY_PRINT) . PHP_EOL;
