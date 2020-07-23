@@ -23,7 +23,7 @@ class Site extends BaseSite
         $this->cfg['dbuser'] = getenv('DB_USERNAME'); // Database username.
         $this->cfg['dbpass'] = getenv('DB_PASSWORD'); // Database password.
         $this->cfg['dbname'] = getenv('DB_NAME');     // Database name.
-        $this->cfg['volumes'] = [getenv('MODOLE_DATA_DIR'), $this->homedir];
+        $this->volumes = [getenv('MODOLE_DATA_DIR'), $this->homedir];
     }
 
     /**
