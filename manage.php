@@ -61,7 +61,7 @@ if ($cli) {
         $help .= "--help|-h              Display's this information." . PHP_EOL;
         $help .= "--backup|-b            Backup this site" . PHP_EOL;
         $help .= "--restore|-r filename  Restore the specified backup file." . PHP_EOL;
-        $help .= "--s3list|-l              List available backups." . PHP_EOL;
+        $help .= "--s3list|-l            List available backups." . PHP_EOL;
         fwrite(STDERR, $help . PHP_EOL);
         $errcode = 1;
         exit($errcode);
