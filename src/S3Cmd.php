@@ -42,7 +42,7 @@ class S3Cmd
         ]);
     }
 
-    function getList()
+    public function getList()
     {
         if(!$this->error) {
             try {
@@ -69,7 +69,7 @@ class S3Cmd
         return true;
     }
 
-    function copy($filename, $body) 
+    public function copy($filename, $body) 
     {
         if(!$this->error) {
             try {
@@ -77,11 +77,11 @@ class S3Cmd
                     'Bucket' => $this->s3_bucket,
                     'Key'    => $filename,
                     'Body'   => $body,
-                    'ACL'    => 'private'
+                    'ACL'    => 'private',
                 ]);
             }
             catch(S3Exception $e) {
-                Log::msg('S3 Exception on putObject!');
+                Log::msg('S3Exception on putObject!');
                 return false;
             }
         } else {
@@ -91,4 +91,24 @@ class S3Cmd
         return true;
     }
 
+    public function getFile($filename, $path)
+    {
+        if(!$this->error) {
+            try {
+                $result = $this->s3->getObject([
+                    'Bucket' => $this->s3_bucket,
+                    'Key'    => $filename,
+                    'SaveAs' => $path,
+                ]);
+            }
+            catch(S3Exception $e) {
+                Log::msg('S3Exception on getObject!');
+                return false;
+            }
+        } else {
+            Log::msg('Unable to execute getFile() - error flagged on S3Cmd::__construct');
+            return false;
+        }
+        return true;
+    }
 }
