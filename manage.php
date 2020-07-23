@@ -15,9 +15,21 @@
  * Please follow the PHP Standards Recommendations at https://www.php-fig.org/psr/
  */
 
- // If using command line...
- $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
+// Use the composer PSR-4 autoloader
+$loader = require 'vendor/autoload.php';
+$loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
+
+include_once "helpers.php";
+
+use RemoteManage\Log;
+use RemoteManage\S3Cmd;
+
+// If using command line...
+$cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
+
 if ($cli) {
+    Log::$cli_mode = true;
+
     $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 'l' => 's3list', 'd' => 'debug'];
     $params = getopt(join(array_keys($options)), array_values($options));
 
@@ -58,15 +70,6 @@ if ($cli) {
 else {
     $operation = $_REQUEST['operation'];
 }
-
-// Use the composer PSR-4 autoloader
-$loader = require 'vendor/autoload.php';
-$loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
-
-include_once "helpers.php";
-
-use RemoteManage\Log;
-use RemoteManage\S3Cmd;
 
 // Load .env file which may accompany this package.
 if (($env = @file(__DIR__ . '/.env')) !== false) {
@@ -134,10 +137,8 @@ switch ($operation) {
         Log::msg("ERROR: The operation is either missing or invalid.");
 }
 
+// If using the CLI, we're done. The message were already printed out as they happened.
 if ($cli) {
-    foreach (Log::get() as $message) {
-        echo $message . PHP_EOL;
-    }
     exit;
 }
 

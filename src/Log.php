@@ -13,6 +13,7 @@ namespace RemoteManage;
  */
 class Log
 {
+    public  static $cli_mode = false;
     private static $messages = [];
 
     /**
@@ -30,6 +31,9 @@ class Log
      */
     public static function msg($str)
     {
+        if (self::$cli_mode) {
+            echo $str . PHP_EOL;
+        }
         self::$messages[] = $str;
     }
 }
