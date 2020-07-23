@@ -23,7 +23,8 @@ class Site extends BaseSite
         $this->cfg['dbuser'] = getenv('DB_USERNAME'); // Database username.
         $this->cfg['dbpass'] = getenv('DB_PASSWORD'); // Database password.
         $this->cfg['dbname'] = getenv('DB_NAME');     // Database name.
-        $this->volumes = [getenv('MODOLE_DATA_DIR'), $this->homedir];
+        $this->cfg['moodledata'] = getenv('MODOLE_DATA_DIR');
+        $this->volumes = [$this->cfg['moodledata'], $this->homedir];
     }
 
     /**
@@ -45,7 +46,7 @@ class Site extends BaseSite
             if (!$this->inMaintMode) {
                 Log::msg("Enter maintenance mode");
                 // Enable maintenance mode.
-                SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->moodledata);
+                SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
                 // Purge cache.
                 SysCmd::exec('/usr/local/bin/php -f admin/cli/purge_caches.php', $homedir);
                 $this->inMaintMode = true;
@@ -55,7 +56,7 @@ class Site extends BaseSite
             if ($this->inMaintMode) {
                 Log::msg("Exit maintenance mode");
                 // Disable maintenance mode.
-                SysCmd::exec('rm ' . $this->moodledata . '/climaintenance.html');
+                SysCmd::exec('rm ' . $this->cfg['moodledata'] . '/climaintenance.html');
                 $this->inMaintMode = false;
             }
         }
