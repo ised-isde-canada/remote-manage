@@ -74,7 +74,9 @@ else {
 // Load .env file which may accompany this package.
 if (($env = @file(__DIR__ . '/.env')) !== false) {
     foreach ($env as $e) {
-        putenv(trim($e));
+        if (!empty($e = trim($e))) {
+           putenv($e);
+        }
     }
 }
 
