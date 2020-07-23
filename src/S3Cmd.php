@@ -69,13 +69,15 @@ class S3Cmd
         return true;
     }
 
-    function copy($backupFile) 
+    function copy($filename, $body) 
     {
         if(!$this->error) {
             try {
                 $result = $this->s3->putObject([
                     'Bucket' => $this->s3_bucket,
-                    'Key' => $backupFile,
+                    'Key'    => $filename,
+                    'Body'   => $body,
+                    'ACL'    => 'private'
                 ]);
             }
             catch(S3Exception $e) {

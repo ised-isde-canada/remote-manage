@@ -145,18 +145,24 @@ abstract class BaseSite
      */
     protected function copyToArchive()
     {
-        $pwd = getpwd();
-        chdir($this->cfg['tmpdir']);
+        $path = $this->cfg['tmpdir'] . '/' . $this->backupTarFile;
+        $contents = file_get_contents($path);
+
+        // debug
+        if ($fp = fopen('/tmp/TEST', 'a')) {
+            fwrite($fp, $contents);
+            fclose($fp);
+        }
+
         $s3 = new S3Cmd();
         try {
-            $s3->copy($this->backupTarFile);
+            $s3->copy($this->backupTarFile, $contents);
         }
         catch (\Exception $e) {
-            chdir($pwd);
             $this->cleanup();
             return false;
         }
-        chdir($pwd);
+       
         return true;
     }
 
