@@ -126,6 +126,8 @@ class Postgres
             fclose($fp);
             chmod($this->pgpassfile, 0600);
         }
+
+        putenv("PGPASSFILE=$this->pgpassfile");
     }
 
     /**
