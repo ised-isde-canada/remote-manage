@@ -90,7 +90,7 @@ class Postgres
             return false;
         }
 
-        $result = pg_query($conn, 'select relname from pg_stat_user_tables order by relname;');;
+        $result = pg_query($conn, 'select relname from pg_stat_user_tables order by relname;');
         if (empty($result)) {
             // No tables found in the database.
             Log::msg("Database $dbname was already empty.");

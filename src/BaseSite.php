@@ -245,7 +245,7 @@ abstract class BaseSite
 
         // Get the name of the restore tar file.
         //$this->restoreTarFile = $_POST[''];
-        $this->restoreTarFile = 'application-dev-2020-07-23_15-50-D.tar.gz';
+        $this->restoreTarFile = "application-dev-2020-07-24_14-40-D.tar.gz";
 
         // Put site into maintenance mode.
         $this->maintMode(true);
@@ -275,7 +275,7 @@ abstract class BaseSite
         }
         
         // TODO
-        // Restore original database credentials in settings.php
+        // Drupal - Restore original database credentials in settings.php
 
         $this->cleanup();
 
@@ -391,21 +391,21 @@ abstract class BaseSite
             Log::msg("Restore volume $volume");
             $parentDir = dirname($volume);
             $backupDir = basename($volume);
-            /*$backupFile = "$backupDir-backup.tar";
+            $backupFile = "$backupDir-backup.tar";
             try {
                 SysCmd::exec(sprintf('tar xf %s',
-                    $backupDir
+                    $backupFile
                 ), $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
                 $this->cleanup();
                 return false;
-            }*/
+            }
 
             try {
                 SysCmd::exec(sprintf('chmod -R ug+w %s',
-                    $volume . '/'
-                ), $this->cfg['tmpdir']);
+                    $volume
+                ));
             }
             catch (\Exception $e) {
                 $this->cleanup();
@@ -415,7 +415,7 @@ abstract class BaseSite
             try {
                 SysCmd::exec(sprintf('cp -rp %s %s',
                     $backupDir . '/*',
-                    $parentDir . '/' . $backupDir . '/'
+                    $volume . '/',
                 ), $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
