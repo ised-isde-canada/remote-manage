@@ -24,7 +24,7 @@ class Site extends BaseSite
         $this->cfg['dbpass'] = getenv('DB_PASSWORD'); // Database password.
         $this->cfg['dbname'] = getenv('DB_NAME');     // Database name.
         $this->cfg['moodledata'] = getenv('MODOLE_DATA_DIR');
-        $this->volumes = [$this->cfg['moodledata'], $this->homedir];
+        $this->volumes = [$this->cfg['moodledata'], $this->cfg['homedir']];
     }
 
     /**
@@ -48,7 +48,7 @@ class Site extends BaseSite
                 // Enable maintenance mode.
                 SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
                 // Purge cache.
-                SysCmd::exec('php -f admin/cli/purge_caches.php', $homedir);
+                SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 $this->inMaintMode = true;
             }
         }
