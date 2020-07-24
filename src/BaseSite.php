@@ -147,11 +147,9 @@ abstract class BaseSite
     protected function copyToArchive()
     {
         $path = $this->cfg['tmpdir'] . '/' . $this->backupTarFile;
-        $contents = file_get_contents($path);
-
         $s3 = new S3Cmd();
         try {
-            $s3->copy($this->backupTarFile, $contents);
+            $s3->copy($this->backupTarFile, $path);
         }
         catch (\Exception $e) {
             $this->cleanup();

@@ -3,7 +3,11 @@
 namespace RemoteManage;
 
 use Aws\S3\S3Client;
+use Aws\AwsClientInterface;
 use Aws\S3\Exception\S3Exception;
+use Aws\Common\Exception\MultipartUploadException;
+use Aws\S3\MultipartUploader;
+
 
 /**
  * This class is a wrapper for the s3cmd tool.
@@ -69,25 +73,24 @@ class S3Cmd
         return true;
     }
 
-    public function copy($filename, $body) 
+    public function copy($filename, $path) 
     {
         if(!$this->error) {
+            $uploader = new MultipartUploader($this->s3, $path, [
+                'bucket' => $this->s3_bucket,
+                'key'    => $filename
+            ]);
             try {
-                $result = $this->s3->putObject([
-                    'Bucket' => $this->s3_bucket,
-                    'Key'    => $filename,
-                    'Body'   => $body,
-                    'ACL'    => 'private',
-                ]);
-            }
-            catch(S3Exception $e) {
-                Log::msg('S3Exception on putObject!');
+                $result = $uploader->upload();
+            } catch (MultipartUploadException $e) {
+                Log::msg('S3Exception on multipart upload!');
                 return false;
             }
         } else {
             Log::msg('Unable to execute copy() - error flagged on S3Cmd::__construct');
             return false;           
         }
+
         return true;
     }
 
