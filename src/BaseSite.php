@@ -16,6 +16,7 @@ abstract class BaseSite
     public    $inMaintMode = false;      // Flag to indicate that the site is in maintenance mode
     private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time)
     private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
+    private   $restoreTarFile = null;      // Filename of the backup tar file received by restore POST request
 
     public function __construct()
     {
@@ -54,7 +55,7 @@ abstract class BaseSite
         // Put site into maintenance mode.
         $this->maintMode(true);
 
-        // Fails if there is neither a database or files to be backed-up.
+        // Fails if there is neither a database or directories to be backed-up.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
         // Backup database, if any.
@@ -147,12 +148,6 @@ abstract class BaseSite
     {
         $path = $this->cfg['tmpdir'] . '/' . $this->backupTarFile;
         $contents = file_get_contents($path);
-
-        // debug
-        if ($fp = fopen('/tmp/TEST', 'a')) {
-            fwrite($fp, $contents);
-            fclose($fp);
-        }
 
         $s3 = new S3Cmd();
         try {
@@ -248,6 +243,188 @@ abstract class BaseSite
      */
     public function restore()
     {
-        return false;
+        Log::msg("Restore process is running...");
+
+        // Get the name of the restore tar file.
+        //$this->restoreTarFile = $_POST[''];
+        $this->restoreTarFile = 'application-dev-2020-07-23_15-50-D.tar.gz';
+
+        // Put site into maintenance mode.
+        $this->maintMode(true);
+
+        // Fails if there is neither a database or directories to be restored.
+        $success = empty($this->cfg['dbname'] && empty($this->volumes));
+
+        // Get selected backup archive from S3 bucket.
+        // Hard-coded for now.
+        if ($success) {
+            $success = $this->getBackupArchive();
+        }
+
+        // Unzip backup archive.
+        if($success) {
+            $success = $this->unzipArchive();
+        }
+        
+        // Restore database.
+        if($success && !empty($this->cfg['dbname'])) {
+            $success = $this->restoreDatabase();
+        }
+        
+        // Restore files, if any.
+        if($success && !empty($this->volumes)){
+            $success = $this->restoreVolumes();
+        }
+        
+        // TODO
+        // Restore original database credentials in settings.php
+
+        $this->cleanup();
+
+        return $success;
+    }
+
+    /**
+     * 
+     * @return boolean
+     */
+    public function dropTables()
+    {
+        $db = new Postgres();
+
+        $success = $db->dropTables([
+            'host' => $this->cfg['dbhost'],
+            'port' => $this->cfg['dbport'],
+            'user' => $this->cfg['dbuser'],
+            'pass' => $this->cfg['dbpass'], 
+            'name' => $this->cfg['dbname'],  
+        ]);
+        if (!$success) {
+            Log::msg('Failed to drop database tables!');
+            $this->cleanup();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 
+     * @return boolean
+     */
+    protected function getBackupArchive()
+    {
+        $path = $this->cfg['tmpdir'] . '/' . $this->restoreTarFile;
+        $s3 = new S3Cmd();
+        try {
+            $s3->getFile($this->restoreTarFile, $path);
+        }
+        catch (\Exception $e) {
+            $this->cleanup();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 
+     * @return boolean
+     */
+    protected function unzipArchive()
+    {
+        try {
+            SysCmd::exec(sprintf('gunzip -f %s 2>&1',
+                $this->restoreTarFile
+            ), $this->cfg['tmpdir']);
+        }
+        catch (\Exception $e) {
+            $this->cleanup();
+            return false;
+        }
+        
+        $this->restoreTarFile = preg_replace('/\.gz$/', '', $this->restoreTarFile);
+
+        try {
+            SysCmd::exec(sprintf('tar xf %s',
+                $this->restoreTarFile
+            ), $this->cfg['tmpdir']);
+        } catch (\Exception $e) {
+            $this->cleanup();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 
+     * @return boolean
+     */
+    protected function restoreDatabase()
+    {
+        $db = new Postgres();
+
+        $success = $db->restore([
+            'host' => $this->cfg['dbhost'],
+            'port' => $this->cfg['dbport'],
+            'user' => $this->cfg['dbuser'],
+            'pass' => $this->cfg['dbpass'],
+            'name' => $this->cfg['dbname'],
+            'file' => 'database.tar',
+        ]);
+        if (!$success) {
+            Log::msg("Database restore failed!");
+            $this->cleanup();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 
+     * @return boolean
+     */
+    protected function restoreVolumes()
+    {
+        // Restore the files in each volume directory
+        foreach ($this->volumes as $volume) {
+            Log::msg("Restore volume $volume");
+            $parentDir = dirname($volume);
+            $backupDir = basename($volume);
+            /*$backupFile = "$backupDir-backup.tar";
+            try {
+                SysCmd::exec(sprintf('tar xf %s',
+                    $backupDir
+                ), $this->cfg['tmpdir']);
+            }
+            catch (\Exception $e) {
+                $this->cleanup();
+                return false;
+            }*/
+
+            try {
+                SysCmd::exec(sprintf('chmod -R ug+w %s',
+                    $volume . '/'
+                ), $this->cfg['tmpdir']);
+            }
+            catch (\Exception $e) {
+                $this->cleanup();
+                return false;
+            }
+
+            try {
+                SysCmd::exec(sprintf('cp -rp %s %s',
+                    $backupDir . '/*',
+                    $parentDir . '/' . $backupDir . '/'
+                ), $this->cfg['tmpdir']);
+            }
+            catch (\Exception $e) {
+                $this->cleanup();
+                return false;
+            } 
+        }
+        return true;
     }
 }
