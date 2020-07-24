@@ -48,7 +48,7 @@ class Site extends BaseSite
                 // Enable maintenance mode.
                 SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
                 // Purge cache.
-                SysCmd::exec('/usr/local/bin/php -f admin/cli/purge_caches.php', $homedir);
+                SysCmd::exec('php -f admin/cli/purge_caches.php', $homedir);
                 $this->inMaintMode = true;
             }
         }
