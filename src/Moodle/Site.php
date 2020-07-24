@@ -17,6 +17,8 @@ class Site extends BaseSite
         parent::__construct();
 
         $this->siteType = 'moodle';
+        $this->appName = $this->siteType;
+        $this->appEnv = getenv('OPENSHIFT_BUILD_NAMESPACE');
 
         // Set the standard configuration parameters
         $this->cfg['dbhost'] = getenv('DB_HOST');     // E.g. 'localhost' or 'db.isp.com' or IP.
