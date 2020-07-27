@@ -24,6 +24,9 @@ include_once "helpers.php";
 use RemoteManage\Log;
 use RemoteManage\S3Cmd;
 
+$startTime = microtime(true);
+Log::msg('Starting at ' . date('H:i:s', $startTime) . '...');
+
 // If using command line...
 $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 
@@ -117,30 +120,36 @@ OPENSHIFT_BUILD_REFERENCE=ised
 
 if (empty($site->appEnv = getenv('APP_NAME'))) {
     Log::msg("ERROR: APP_NAME is undefined.");
+    $operation = 'error';
 }
 
-if (!empty($site->appName)) {
-    // Get the requested operation and dispatch.
-    switch ($operation) {
-        case 'backup':
-            $site->backup();
-            break;
+// Get the requested operation and dispatch.
+switch ($operation) {
+    case 'backup':
+        $site->backup();
+        break;
 
-        case 'restore':
-            if ($site->dropTables()) {
-                $site->restore();
-            }
-            break;
+    case 'restore':
+        if ($site->dropTables()) {
+            $site->restore();
+        }
+        break;
 
-        case 's3list': // temporary, for testing
-            $s3 = new S3Cmd();
-            $s3->getList();
-            break;
+    case 's3list': // temporary, for testing
+        $s3 = new S3Cmd();
+        $s3->getList();
+        break;
 
-        default:
-            Log::msg("ERROR: The operation is either missing or invalid.");
-    }
+    case 'error': // Error, just exit.
+        break;
+
+    default:
+        Log::msg("ERROR: The operation is either missing or invalid.");
 }
+
+$endTime = microtime(true);
+Log::msg('Job started at ' . date('H:i:s', $startTime) . ' and finished at ' . date('H:i:s', $startTime) . '.');
+Log::msg('Total execution time was ' . date('H:i:s', $endTime - $startTime) . '.');
 
 // If using the CLI, we're done. The message were already printed out as they happened.
 if ($cli) {
