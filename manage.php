@@ -24,9 +24,6 @@ include_once "helpers.php";
 use RemoteManage\Log;
 use RemoteManage\S3Cmd;
 
-$startTime = microtime(true);
-Log::msg('Starting at ' . date('H:i:s', $startTime) . '...');
-
 // If using command line...
 $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 
@@ -102,6 +99,10 @@ if (isset($_POST['aws_s3_region'])) {
     putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
 }
 
+// Display start time.
+$startTime = microtime(true);
+Log::msg('Starting at ' . date('H:i:s', $startTime) . '...');
+
 // Get a site object. This will determine the type of site.
 $site = getSite();
 
@@ -147,6 +148,7 @@ switch ($operation) {
         Log::msg("ERROR: The operation is either missing or invalid.");
 }
 
+// Display end time and duration.
 $endTime = microtime(true);
 Log::msg('Job started at ' . date('H:i:s', $startTime) . ' and finished at ' . date('H:i:s', $startTime) . '.');
 Log::msg('Total execution time was ' . date('H:i:s', $endTime - $startTime) . '.');
