@@ -54,7 +54,9 @@ class Site extends BaseSite
         if ($maint) {
             if (!$this->inMaintMode) {
                 Log::msg("Enter Drupal maintenance mode");
+                // Enable maintenance mode.
                 SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 1 --input-format=integer');
+                // Rebuild cache (no need to backup temp files).
                 SysCmd::exec($this->cfg['drush'] . ' cr');
                 $this->inMaintMode = true;
             }
@@ -62,8 +64,10 @@ class Site extends BaseSite
         else {
             if ($this->inMaintMode) {
                 Log::msg("Exit Drupal maintenance mode");
-                SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 0 --input-format=integer');
+                // Rebuild cache (in case we are doing a restore).
                 SysCmd::exec($this->cfg['drush'] . ' cr');
+                // Disable maintenance mode.
+                SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 0 --input-format=integer');
                 $this->inMaintMode = false;
             }
         }

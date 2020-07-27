@@ -48,7 +48,7 @@ class Site extends BaseSite
                 Log::msg("Enter maintenance mode");
                 // Enable maintenance mode.
                 SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
-                // Purge cache.
+                // Purge all cache (no need to backup temp files).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 $this->inMaintMode = true;
             }
@@ -56,6 +56,8 @@ class Site extends BaseSite
         else {
             if ($this->inMaintMode) {
                 Log::msg("Exit maintenance mode");
+                // Purge all cache (in case we are doing a restore).
+                SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 // Disable maintenance mode.
                 SysCmd::exec('rm ' . $this->cfg['moodledata'] . '/climaintenance.html');
                 $this->inMaintMode = false;

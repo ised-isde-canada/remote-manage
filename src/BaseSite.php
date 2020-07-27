@@ -68,6 +68,9 @@ abstract class BaseSite
             $success = $this->backupVolumes();
         }
 
+        // No need to keep the site in maintenance mode from this point on.
+        $this->maintMode(false);
+
         // Create GZIP file.
         if ($success) {
             $success = $this->createZip();
@@ -209,8 +212,10 @@ abstract class BaseSite
         // Remove the temporary directory
         SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
 
-        // Take site out of maintenance mode
-        $this->maintMode(false);
+        if ($this->inMaintMode) {
+            // Take site out of maintenance mode
+            $this->maintMode(false);
+        }
 
         return true;
     }
