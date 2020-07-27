@@ -114,29 +114,32 @@ OPENSHIFT_BUILD_COMMIT=32724cf94432a776c510f53f49240f0edc810de6
 OPENSHIFT_BUILD_NAMESPACE=ciodrcoe-dev
 OPENSHIFT_BUILD_REFERENCE=ised
  */
-if (isset($_REQUEST['app_name'])) {
-    $site->appName = $_REQUEST['app_name'];
+
+if (empty($site->appEnv = getenv('APP_NAME'))) {
+    Log::msg("ERROR: APP_NAME is undefined.");
 }
 
-// Get the requested operation and dispatch.
-switch ($operation) {
-    case 'backup':
-        $site->backup();
-        break;
+if (!empty($site->appName)) {
+    // Get the requested operation and dispatch.
+    switch ($operation) {
+        case 'backup':
+            $site->backup();
+            break;
 
-    case 'restore':
-        if ($site->dropTables()) {
-            $site->restore();
-        }
-        break;
+        case 'restore':
+            if ($site->dropTables()) {
+                $site->restore();
+            }
+            break;
 
-    case 's3list': // temporary, for testing
-        $s3 = new S3Cmd();
-        $s3->getList();
-        break;
+        case 's3list': // temporary, for testing
+            $s3 = new S3Cmd();
+            $s3->getList();
+            break;
 
-    default:
-        Log::msg("ERROR: The operation is either missing or invalid.");
+        default:
+            Log::msg("ERROR: The operation is either missing or invalid.");
+    }
 }
 
 // If using the CLI, we're done. The message were already printed out as they happened.
