@@ -126,7 +126,7 @@ abstract class BaseSite
             try {
                 SysCmd::exec(sprintf('tar cf %s %s 2>&1',
                     $this->cfg['tmpdir'] . '/' . $backupFile,
-                    $backupDir,
+                    $backupDir
                 ), $parentDir);
             }
             catch (\Exception $e) {
@@ -415,7 +415,7 @@ abstract class BaseSite
             try {
                 SysCmd::exec(sprintf('cp -rp %s %s',
                     $backupDir . '/*',
-                    $volume . '/',
+                    $volume . '/'
                 ), $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
