@@ -39,15 +39,30 @@ if ($cli) {
     }
 
     // Only process the first passed parameter.
+    // We don't support multiple parameters at this time.
     reset($params);
     $operation = key($params);
 
-    // Get value. If none, will be false.
-    $file = $params[$operation];
+    // Only get the first passed parameter.
+    reset($params);
+    $operation = key($params);
+
+    // Get a filename if one was passed.
+    if ($cli && !empty($params[$operation])) {
+        $filename = $params[$operation];
+    }
+    else if (isset($_POST['filename'])) {
+        $filename = $_POST['filename'];
+    }
 
     // Convert to long form of option if short form was specified.
     if (isset($options[$operation])) {
         $operation = $options[$operation];
+    }
+
+    if ($operation == 'restore' and $empty('filename')) {
+        Log::msg("ERROR: Missing filename for restore operation.");
+        $operation = 'error';
     }
 
     // Display help.
@@ -136,7 +151,7 @@ switch ($operation) {
 
     case 'restore':
         if ($site->dropTables()) {
-            $site->restore($file);
+            $site->restore($filename);
         }
         break;
 
