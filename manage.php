@@ -127,7 +127,7 @@ if (empty($site->appEnv = getenv('APP_NAME'))) {
 // Get the requested operation and dispatch.
 switch ($operation) {
     case 'backup':
-        $site->backup();
+        $site->backup($startTime);
         break;
 
     case 'restore':
@@ -150,7 +150,7 @@ switch ($operation) {
 
 // Display end time and duration.
 $endTime = microtime(true);
-Log::msg('Job started at ' . date('H:i:s', $startTime) . ' and finished at ' . date('H:i:s', $startTime) . '.');
+Log::msg('Job started at ' . date('H:i:s', $startTime) . ' and finished at ' . date('H:i:s', $endTime) . '.');
 Log::msg('Total execution time was ' . date('H:i:s', $endTime - $startTime) . '.');
 
 // If using the CLI, we're done. The message were already printed out as they happened.

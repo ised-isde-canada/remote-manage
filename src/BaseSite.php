@@ -29,9 +29,12 @@ abstract class BaseSite
     /**
      * Backup a site.
      * Will abort if any part of the backup fails.
+     *
+     * @param $startTime integer Time script was started.
+     *
      * @return boolean Success (true), Failure (false).
      */
-    public function backup()
+    public function backup($startTime)
     {
         Log::msg("Backup process is running...");
 
@@ -71,6 +74,10 @@ abstract class BaseSite
         // No need to keep the site in maintenance mode from this point on.
         $this->maintMode(false);
 
+        // Display elapsed time..
+        $endTime = microtime(true);
+        Log::msg('Elapsed execution time is ' . date('H:i:s', $endTime - $startTime) . '.');
+
         // Create GZIP file.
         if ($success) {
             $success = $this->createZip();
@@ -87,7 +94,8 @@ abstract class BaseSite
     }
 
     /**
-     *
+     * Backup the Database.
+     * 
      * @return boolean
      */
     protected function backupDatabase()
@@ -144,7 +152,8 @@ abstract class BaseSite
     }
 
     /**
-     *
+     * Copy gzip file to S3.
+     * 
      * @return boolean
      */
     protected function copyToArchive()
@@ -163,6 +172,7 @@ abstract class BaseSite
     }
 
     /**
+     * Create a compressed .tar.gz file from all the backup files.
      *
      * @return boolean
      */
@@ -236,12 +246,16 @@ abstract class BaseSite
      * NOTE: The class which extends this base class must
      * define how maintMode is implemented. It should also
      * maintain the state of $this->inMaintMode.
-     * @param boolean $maint
+     *
+     * @param boolean $maint In maintenance mode (true), otherwise false.
+     * 
+     * @return boolean $success Successful (true), failed (false).
      */
     abstract public function maintMode($maint=true);
 
     /**
      * Restore a site, using parameters provided in the POST and local configuration.
+     *
      * @return boolean
      */
     public function restore()
@@ -275,7 +289,7 @@ abstract class BaseSite
         }
         
         // Restore files, if any.
-        if($success && !empty($this->volumes)){
+        if($success && !empty($this->volumes)) {
             $success = $this->restoreVolumes();
         }
         
@@ -288,7 +302,8 @@ abstract class BaseSite
     }
 
     /**
-     * 
+     * Drop all of the tables in the database.
+     *
      * @return boolean
      */
     public function dropTables()
@@ -312,7 +327,8 @@ abstract class BaseSite
     }
 
     /**
-     * 
+     * Retrieve tar.gz backup file.
+     *
      * @return boolean
      */
     protected function getBackupArchive()
@@ -331,7 +347,8 @@ abstract class BaseSite
     }
 
     /**
-     * 
+     * Decompress gz archive file.
+     *
      * @return boolean
      */
     protected function unzipArchive()
@@ -361,7 +378,8 @@ abstract class BaseSite
     }
 
     /**
-     * 
+     * Restore the database.
+     *
      * @return boolean
      */
     protected function restoreDatabase()
@@ -386,7 +404,8 @@ abstract class BaseSite
     }
 
     /**
-     * 
+     * Restore files.
+     *
      * @return boolean
      */
     protected function restoreVolumes()
