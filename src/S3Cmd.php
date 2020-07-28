@@ -60,10 +60,9 @@ class S3Cmd
             }
 
             for ($n = 0; $n <sizeof($result['Contents']); $n++) {
-                Log::msg($result['Contents'][$n]['Key']);
-    //             $result['Contents'][$n]['Key']
-    //             $result['Contents'][$n]['Size']
-    //             $result['Contents'][$n]['LastModified']
+                Log::msg( sprintf('%s (%0.2f MB)',
+                $result['Contents'][$n]['Key'],
+                $result['Contents'][$n]['Size'] / 1000000));
             }
         } else {
             Log::msg('Unable to execute getList() - error flagged on S3Cmd::__construct');
