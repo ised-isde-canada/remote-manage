@@ -133,7 +133,7 @@ switch ($operation) {
     case 'restore':
         if(isset($_POST['backup_file'])){
             if ($site->dropTables()) {
-                $site->restore($backupFile);
+                $site->restore($_POST['backup_file']);
             }
         } else {
             Log::msg("Backup file not received in POST request.");
