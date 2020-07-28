@@ -9,7 +9,6 @@ namespace RemoteManage;
 abstract class BaseSite
 {
     public    $siteType = 'unknown';     // The type of site. Use all lowercase
-    public    $appName = 'application';  // The application name for this site
     public    $appEnv = 'dev';           // Environment: dev, test, qa, prod
     public    $cfg = [];                 // Configuration data
     public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
@@ -48,8 +47,7 @@ abstract class BaseSite
         }
 
         // Set the name of the backup tar file.
-        $this->backupTarFile = sprintf('%s-%s-%s-%s.tar',
-            $this->appName,
+        $this->backupTarFile = sprintf('%s-%s-%s.tar',
             $this->appEnv,
             date('Y-m-d_H-i'),
             $backupType
@@ -258,13 +256,10 @@ abstract class BaseSite
      *
      * @return boolean
      */
-    public function restore()
+    public function restore($backupFile)
     {
         Log::msg("Restore process is running...");
-
-        // Get the name of the restore tar file.
-        //$this->restoreTarFile = $_POST[''];
-        $this->restoreTarFile = "application-dev-2020-07-24_14-40-D.tar.gz";
+        $this->restoreTarFile = $backupFile;
 
         // Put site into maintenance mode.
         $this->maintMode(true);
