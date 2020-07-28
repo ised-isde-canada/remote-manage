@@ -99,6 +99,10 @@ if (isset($_POST['aws_s3_region'])) {
     putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
 }
 
+if (isset($_POST['backup_file'])) {
+    $file = $_POST['backup_file'];
+}
+
 // Display start time.
 $startTime = microtime(true);
 Log::msg('Starting at ' . date('H:i:s', $startTime) . '...');
@@ -131,12 +135,8 @@ switch ($operation) {
         break;
 
     case 'restore':
-        if(isset($_POST['backup_file'])){
-            if ($site->dropTables()) {
-                $site->restore($_POST['backup_file']);
-            }
-        } else {
-            Log::msg("Backup file not received in POST request.");
+        if ($site->dropTables()) {
+            $site->restore($file);
         }
         break;
 
