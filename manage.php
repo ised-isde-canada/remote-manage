@@ -127,7 +127,7 @@ if ($aws_op && isset($_POST['aws_s3_region'])) {
     $operation = 'error';
 }
 
-if ($operation == 'restore' && empty($filename)) {
+if ($operation == 'restore' && !empty($filename)) {
     Log::msg("ERROR: Missing filename for restore operation.");
     $operation = 'error';
 }
@@ -164,9 +164,7 @@ switch ($operation) {
         break;
 
     case 'restore':
-        if ($site->dropTables()) {
-            $site->restore($filename);
-        }
+        $site->restore($startTime, $filename);
         break;
 
     case 's3list': // temporary, for testing

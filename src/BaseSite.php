@@ -256,19 +256,23 @@ abstract class BaseSite
      *
      * @return boolean
      */
-    public function restore($backupFile)
+    public function restore($startTime, $backupFile)
     {
         Log::msg("Restore process is running...");
         $this->restoreTarFile = $backupFile;
-
+        
         // Put site into maintenance mode.
         $this->maintMode(true);
 
         // Fails if there is neither a database or directories to be restored.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
+        // Drop database tables
+        if ($success) {
+            $success = $this->dropTables();
+        }
+
         // Get selected backup archive from S3 bucket.
-        // Hard-coded for now.
         if ($success) {
             $success = $this->getBackupArchive();
         }
@@ -288,8 +292,9 @@ abstract class BaseSite
             $success = $this->restoreVolumes();
         }
         
-        // TODO
-        // Drupal - Restore original database credentials in settings.php
+        // Display elapsed time..
+        $endTime = microtime(true);
+        Log::msg('Elapsed execution time is ' . date('H:i:s', $endTime - $startTime) . '.');
 
         $this->cleanup();
 
