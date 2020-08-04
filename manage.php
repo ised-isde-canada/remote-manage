@@ -60,11 +60,6 @@ if ($cli) {
         $operation = $options[$operation];
     }
 
-    if ($operation == 'restore' and $empty('filename')) {
-        Log::msg("ERROR: Missing filename for restore operation.");
-        $operation = 'error';
-    }
-
     // Display help.
     if ($operation == 'help') {
         $help = 'Manage v1.0 - July 2020' . PHP_EOL;
@@ -98,24 +93,43 @@ if (($env = @file(__DIR__ . '/.env')) !== false) {
 // Get S3 credentials and settings if provided via POST (only).
 // These would override any settings from the .env file above.
 
-if (isset($_POST['aws_access_key'])) {
+$aws_op = FALSE;
+if ($operation == 'backup' || $operation == 'restore' 
+|| $operation == 's3list') {
+    $aws_op = TRUE;
+}
+
+if ($aws_op && isset($_POST['aws_access_key'])) {
     putenv('AWS_ACCESS_KEY_ID=' . $_POST['aws_access_key']);
+} else {
+    Log::msg("ERROR: AWS access key not received via POST.");
+    $operation = 'error';
 }
 
-if (isset($_POST['aws_secret_access_key'])) {
+if ($aws_op && isset($_POST['aws_secret_access_key'])) {
     putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);
+} else {
+    Log::msg("ERROR: AWS secret access key not received via POST.");
+    $operation = 'error';
 }
 
-if (isset($_POST['aws_s3_bucket'])) {
+if ($aws_op && isset($_POST['aws_s3_bucket'])) {
     putenv('AWS_S3_BUCKET=' . $_POST['aws_s3_bucket']);
+} else {
+    Log::msg("ERROR: AWS S3 bucket not received via POST");
+    $operation = 'error';
 }
 
-if (isset($_POST['aws_s3_region'])) {
+if ($aws_op && isset($_POST['aws_s3_region'])) {
     putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
+} else {
+    Log::msg("ERROR: AWS S3 region not received via POST");
+    $operation = 'error';
 }
 
-if (isset($_POST['backup_file'])) {
-    $file = $_POST['backup_file'];
+if ($operation == 'restore' && empty($filename)) {
+    Log::msg("ERROR: Missing filename for restore operation.");
+    $operation = 'error';
 }
 
 // Display start time.
