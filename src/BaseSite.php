@@ -427,7 +427,7 @@ abstract class BaseSite
             }
 
             try {
-                SysCmd::exec(sprintf('chmod -R ug+w %s',
+                SysCmd::exec(sprintf('chmod -Rf ug+w %s',
                     $volume
                 ));
             }
@@ -437,7 +437,7 @@ abstract class BaseSite
             }
 
             try {
-                SysCmd::exec(sprintf('cp -rp %s %s',
+                SysCmd::exec(sprintf('cp -R %s %s',
                     $backupDir . '/*',
                     $volume . '/'
                 ), $this->cfg['tmpdir']);
