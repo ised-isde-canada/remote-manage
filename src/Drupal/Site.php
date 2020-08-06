@@ -19,16 +19,13 @@ class Site extends BaseSite
         $this->siteType = 'drupal';
         $this->sitesDir = $this->cfg['homedir'] . '/html/sites';
 
-        // Get the database connection parameters from the Drupal settings file if it exists
-        if (file_exists("$this->sitesDir/default/settings.php")) {
-            require "$this->sitesDir/default/settings.php";
-            $this->cfg['dbhost'] = $databases['default']['default']['host'];
-            $this->cfg['dbport'] = $databases['default']['default']['port'];
-            $this->cfg['dbuser'] = $databases['default']['default']['username'];
-            $this->cfg['dbpass'] = $databases['default']['default']['password'];
-            $this->cfg['dbname'] = $databases['default']['default']['database'];
-        }
-
+        // Set the database configuration parameters
+        $this->cfg['dbhost'] = getenv('DB_HOST');
+        $this->cfg['dbport'] = getenv('DB_PORT');
+        $this->cfg['dbuser'] = getenv('DB_USERNAME');
+        $this->cfg['dbpass'] = getenv('DB_PASSWORD');
+        $this->cfg['dbname'] = getenv('DB_NAME');
+    
         // Define the volumes for backup and restore (must use absolute path)
         $this->volumes = [$this->sitesDir];
 
