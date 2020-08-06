@@ -278,17 +278,17 @@ abstract class BaseSite
         }
 
         // Unzip backup archive.
-        if($success) {
+        if ($success) {
             $success = $this->unzipArchive();
         }
         
         // Restore database.
-        if($success && !empty($this->cfg['dbname'])) {
+        if ($success && !empty($this->cfg['dbname'])) {
             $success = $this->restoreDatabase();
         }
         
         // Restore files, if any.
-        if($success && !empty($this->volumes)) {
+        if ($success && !empty($this->volumes)) {
             $success = $this->restoreVolumes();
         }
         
@@ -427,17 +427,7 @@ abstract class BaseSite
             }
 
             try {
-                SysCmd::exec(sprintf('chmod -Rf ug+w %s',
-                    $volume
-                ));
-            }
-            catch (\Exception $e) {
-                $this->cleanup();
-                return false;
-            }
-
-            try {
-                SysCmd::exec(sprintf('cp -R %s %s',
+                SysCmd::exec(sprintf('cp -Rf %s %s',
                     $backupDir . '/*',
                     $volume . '/'
                 ), $this->cfg['tmpdir']);

@@ -47,13 +47,14 @@ if ($cli) {
     reset($params);
     $operation = key($params);
 
-    // Get a filename if one was passed.
+    /* Get a filename if one was passed. - TODO
     if ($cli && !empty($params[$operation])) {
         $filename = $params[$operation];
     }
     else if (isset($_POST['filename'])) {
         $filename = $_POST['filename'];
     }
+    */
 
     // Convert to long form of option if short form was specified.
     if (isset($options[$operation])) {
@@ -127,8 +128,10 @@ if ($aws_op && isset($_POST['aws_s3_region'])) {
     $operation = 'error';
 }
 
-if ($operation == 'restore' && !empty($filename)) {
-    Log::msg("ERROR: Missing filename for restore operation.");
+if ($operation == 'restore' && isset($_POST['filename'])) {
+    $filename = $_POST['filename'];
+} else {
+    Log::msg("ERROR: Filename not received via POST");
     $operation = 'error';
 }
 
