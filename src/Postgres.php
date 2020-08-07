@@ -78,13 +78,13 @@ class Postgres
     public function dropTables($db)
     {
         // Establish conection to database.
-        $conn = @pg_connect(sprintf('host=%s port=%s dbname=%s user=%s password=%s'),
+        $conn = @pg_connect(sprintf('host=%s port=%s dbname=%s user=%s password=%s',
             $db['host'],
             $db['port'],
             $db['name'],
             $db['user'],
             $db['pass']
-        );
+        ));
         if ($conn === false) {
             Log::msg("Failed to connect to database $dbname.");
             return false;
