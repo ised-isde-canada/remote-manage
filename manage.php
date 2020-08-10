@@ -3,9 +3,12 @@
 /**
  * Perform remote management for a website.
  *
- * Written by: Duncan Sutter, Samantha Tripp and Michael Milette
  * Date: July 2020
- * License: MIT
+ *
+ * @author  Duncan Sutter
+ * @author  Samantha Tripp
+ * @author  Michael Milette
+ * @license MIT https://opensource.org/licenses/MIT
  *
  * This script is the main entry point for remote management. Operations are:
  * - backup
@@ -19,7 +22,7 @@
 $loader = require 'vendor/autoload.php';
 $loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
 
-include_once "helpers.php";
+require_once "helpers.php";
 
 use RemoteManage\Log;
 use RemoteManage\S3Cmd;
@@ -30,7 +33,7 @@ $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 if ($cli) {
     Log::$cli_mode = true;
 
-    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 'l' => 's3list', 'd' => 'debug'];
+    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 's' => 'space', 'l' => 's3list', 'd' => 'debug'];
     $params = getopt(join(array_keys($options)), array_values($options));
 
     // If invalid or missing parameter, display help.
@@ -43,18 +46,10 @@ if ($cli) {
     reset($params);
     $operation = key($params);
 
-    // Only get the first passed parameter.
-    reset($params);
-    $operation = key($params);
-
-    /* Get a filename if one was passed. - TODO
-    if ($cli && !empty($params[$operation])) {
+    // Get a filename if one was passed.
+    if (!empty($params[$operation])) {
         $filename = $params[$operation];
     }
-    else if (isset($_POST['filename'])) {
-        $filename = $_POST['filename'];
-    }
-    */
 
     // Convert to long form of option if short form was specified.
     if (isset($options[$operation])) {
@@ -73,13 +68,24 @@ if ($cli) {
         $help .= "--backup|-b            Backup this site" . PHP_EOL;
         $help .= "--restore|-r filename  Restore the specified backup file." . PHP_EOL;
         $help .= "--s3list|-l            List available backups." . PHP_EOL;
+        $help .= "--space|-s             List disk space information." . PHP_EOL;
         fwrite(STDERR, $help . PHP_EOL);
         $errcode = 1;
         exit($errcode);
     }
 }
-else {
+else { // Web form post mode.
     $operation = $_REQUEST['operation'];
+
+    if($operation == 'restore' && isset($_POST['filename'])) {
+        $filename = $_POST['filename'];
+    }
+}
+
+// Ensure filename was specified, if required.
+if($operation == 'restore' && empty('filename')) {
+    Log::msg("ERROR: Missing filename.");
+    $operation = 'error';
 }
 
 // Load .env file which may accompany this package.
@@ -94,11 +100,7 @@ if (($env = @file(__DIR__ . '/.env')) !== false) {
 // Get S3 credentials and settings if provided via POST (only).
 // These would override any settings from the .env file above.
 
-$aws_op = FALSE;
-if ($operation == 'backup' || $operation == 'restore' 
-|| $operation == 's3list') {
-    $aws_op = TRUE;
-}
+$aws_op = in_array($operation, ['backup', 'restore', 's3list']);
 
 if ($aws_op) {
 
@@ -110,7 +112,7 @@ if ($aws_op) {
     }
 
     if(isset($_POST['aws_secret_access_key'])) {
-        putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);   
+        putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);
     } else {
         Log::msg("ERROR: AWS secret access key not received via POST.");
         $operation = 'error';
@@ -127,16 +129,6 @@ if ($aws_op) {
         putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
     } else {
         Log::msg("ERROR: AWS S3 region not received via POST");
-        $operation = 'error';
-    }
-}
-
-if ($operation == 'restore') {
-
-    if (isset($_POST['filename'])) {
-        $filename = $_POST['filename'];
-    } else {
-        Log::msg("ERROR: Filename not received via POST");
         $operation = 'error';
     }
 }
@@ -179,6 +171,17 @@ switch ($operation) {
     case 's3list': // temporary, for testing
         $s3 = new S3Cmd();
         $s3->getList();
+        break;
+
+    case 'space': // Disk space information.
+        foreach ($site->volumes as $volume) {
+            $disk = new DiskSpace($volume);
+            Log::msg("Disk information for $volume:");
+            Log::msg("Total disk space: $disk->total_space");
+            Log::msg("Free disk space: $disk->free");
+            Log::msg("Used disk space: $disk->used");
+            Log::msg("Used free space: $disk->percentage");
+        }
         break;
 
     case 'error': // Error, just exit.
