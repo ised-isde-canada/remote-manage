@@ -34,6 +34,7 @@ class Site extends BaseSite
 
         // Check for existing Drupal site installation
         $this->siteExists = $this->checkInstallation();
+    }
 
     /**
      * Static function to detect if this is a Drupal site.
@@ -48,7 +49,7 @@ class Site extends BaseSite
      * Determine if a Drupal site is installed by locating the settings.php file.
      * @return boolean If Drupal installation exists (true), or not (false).
      */
-    private function checkInstallation() 
+    public function checkInstallation() 
     {
         return file_exists($this->sitesDir . '/settings.php');
     }
