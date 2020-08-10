@@ -100,39 +100,45 @@ if ($operation == 'backup' || $operation == 'restore'
     $aws_op = TRUE;
 }
 
-if ($aws_op && isset($_POST['aws_access_key'])) {
-    putenv('AWS_ACCESS_KEY_ID=' . $_POST['aws_access_key']);
-} else {
-    Log::msg("ERROR: AWS access key not received via POST.");
-    $operation = 'error';
+if ($aws_op) {
+
+    if(isset($_POST['aws_access_key'])) {
+        putenv('AWS_ACCESS_KEY_ID=' . $_POST['aws_access_key']);
+    } else {
+        Log::msg("ERROR: AWS access key not received via POST.");
+        $operation = 'error';
+    }
+
+    if(isset($_POST['aws_secret_access_key'])) {
+        putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);   
+    } else {
+        Log::msg("ERROR: AWS secret access key not received via POST.");
+        $operation = 'error';
+    }
+
+    if(isset($_POST['aws_s3_bucket'])) {
+        putenv('AWS_S3_BUCKET=' . $_POST['aws_s3_bucket']);
+    } else {
+        Log::msg("ERROR: AWS S3 bucket not received via POST");
+        $operation = 'error';
+    }
+
+    if(isset($_POST['aws_s3_region'])) {
+        putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
+    } else {
+        Log::msg("ERROR: AWS S3 region not received via POST");
+        $operation = 'error';
+    }
 }
 
-if ($aws_op && isset($_POST['aws_secret_access_key'])) {
-    putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);
-} else {
-    Log::msg("ERROR: AWS secret access key not received via POST.");
-    $operation = 'error';
-}
+if ($operation == 'restore') {
 
-if ($aws_op && isset($_POST['aws_s3_bucket'])) {
-    putenv('AWS_S3_BUCKET=' . $_POST['aws_s3_bucket']);
-} else {
-    Log::msg("ERROR: AWS S3 bucket not received via POST");
-    $operation = 'error';
-}
-
-if ($aws_op && isset($_POST['aws_s3_region'])) {
-    putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
-} else {
-    Log::msg("ERROR: AWS S3 region not received via POST");
-    $operation = 'error';
-}
-
-if ($operation == 'restore' && isset($_POST['filename'])) {
-    $filename = $_POST['filename'];
-} else {
-    Log::msg("ERROR: Filename not received via POST");
-    $operation = 'error';
+    if (isset($_POST['filename'])) {
+        $filename = $_POST['filename'];
+    } else {
+        Log::msg("ERROR: Filename not received via POST");
+        $operation = 'error';
+    }
 }
 
 // Display start time.

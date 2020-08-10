@@ -85,7 +85,7 @@ class Postgres
             $db['user'],
             $db['pass']
         ));
-        if ($conn === false) {
+        if (!$conn) {
             Log::msg("Failed to connect to database $dbname.");
             return false;
         }

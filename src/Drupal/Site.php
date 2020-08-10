@@ -31,7 +31,9 @@ class Site extends BaseSite
 
         // Set app-specific configuration parameters
         $this->cfg['drush'] = $this->cfg['homedir'] . '/vendor/bin/drush';
-    }
+
+        // Check for existing Drupal site installation
+        $this->siteExists = $this->checkInstallation();
 
     /**
      * Static function to detect if this is a Drupal site.
@@ -40,6 +42,15 @@ class Site extends BaseSite
     public static function detect()
     {
         return is_dir(getenv('HOME') . '/drush') ? true : false;
+    }
+
+    /**
+     * Determine if a Drupal site is installed by locating the settings.php file.
+     * @return boolean If Drupal installation exists (true), or not (false).
+     */
+    private function checkInstallation() 
+    {
+        return file_exists($this->sitesDir . '/settings.php');
     }
 
     /**

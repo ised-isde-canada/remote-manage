@@ -12,10 +12,11 @@ abstract class BaseSite
     public    $appEnv = 'dev';           // Environment: dev, test, qa, prod
     public    $cfg = [];                 // Configuration data
     public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
+    public    $siteExists = null;         // Flag to indicate if the site already exists or will be newly created
     public    $inMaintMode = false;      // Flag to indicate that the site is in maintenance mode
     private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time)
     private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
-    private   $restoreTarFile = null;      // Filename of the backup tar file received by restore POST request
+    private   $restoreTarFile = null;    // Filename of the backup tar file received by restore POST request
 
     public function __construct()
     {
@@ -54,8 +55,10 @@ abstract class BaseSite
         );
 
         // Put site into maintenance mode.
-        $this->maintMode(true);
-
+        if ($this->siteExists) {
+            $this->maintMode(true);
+        }
+        
         // Fails if there is neither a database or directories to be backed-up.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
@@ -262,7 +265,10 @@ abstract class BaseSite
         $this->restoreTarFile = $backupFile;
         
         // Put site into maintenance mode.
-        $this->maintMode(true);
+        if ($this->siteExists) {
+            $this->maintMode(true);
+        }
+        
 
         // Fails if there is neither a database or directories to be restored.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
