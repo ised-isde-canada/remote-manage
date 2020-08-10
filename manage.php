@@ -26,6 +26,7 @@ require_once "helpers.php";
 
 use RemoteManage\Log;
 use RemoteManage\S3Cmd;
+use RemoteManage\DiskSpace;
 
 // If using command line...
 $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);

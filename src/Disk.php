@@ -14,6 +14,9 @@
  * @author  Michael Milette <www.tngconsulting.ca>
  * @license MIT https://opensource.org/licenses/MIT
  */
+
+namespace RemoteManage;
+
 class DiskSpace
 {
     public $total = 0;
