@@ -89,48 +89,51 @@ if($operation == 'restore' && empty('filename')) {
     $operation = 'error';
 }
 
-// Load .env file which may accompany this package.
-if (($env = @file(__DIR__ . '/.env')) !== false) {
-    foreach ($env as $e) {
-        if (!empty($e = trim($e))) {
-           putenv($e);
-        }
-    }
-}
-
-// Get S3 credentials and settings if provided via POST (only).
-// These would override any settings from the .env file above.
+// Get S3 credentials and settings if required.
 
 $aws_op = in_array($operation, ['backup', 'restore', 's3list']);
 
 if ($aws_op) {
-
-    if(isset($_POST['aws_access_key'])) {
-        putenv('AWS_ACCESS_KEY_ID=' . $_POST['aws_access_key']);
-    } else {
-        Log::msg("ERROR: AWS access key not received via POST.");
-        $operation = 'error';
+    // Load .env file which may accompany this package.
+    if (($env = @file(__DIR__ . '/.env')) !== false) {
+        foreach ($env as $e) {
+            if (!empty($e = trim($e))) {
+            putenv($e);
+            }
+        }
     }
 
-    if(isset($_POST['aws_secret_access_key'])) {
-        putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);
-    } else {
-        Log::msg("ERROR: AWS secret access key not received via POST.");
-        $operation = 'error';
-    }
+    if (!$cli) {
+        // Get credentials and settings if provided via POST .
+        // These would override any settings from the .env file above.
 
-    if(isset($_POST['aws_s3_bucket'])) {
-        putenv('AWS_S3_BUCKET=' . $_POST['aws_s3_bucket']);
-    } else {
-        Log::msg("ERROR: AWS S3 bucket not received via POST");
-        $operation = 'error';
-    }
+        if (isset($_POST['aws_access_key'])) {
+            putenv('AWS_ACCESS_KEY_ID=' . $_POST['aws_access_key']);
+        } else if (!getenv('AWS_ACCESS_KEY_ID')) {
+            Log::msg("ERROR: AWS access key not received via POST.");
+            $operation = 'error';
+        }
 
-    if(isset($_POST['aws_s3_region'])) {
-        putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
-    } else {
-        Log::msg("ERROR: AWS S3 region not received via POST");
-        $operation = 'error';
+        if (isset($_POST['aws_secret_access_key'])) {
+            putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);
+        } else if (!getenv('AWS_SECRET_ACCESS_KEY')) {
+            Log::msg("ERROR: AWS secret access key not received via POST.");
+            $operation = 'error';
+        }
+
+        if (isset($_POST['aws_s3_bucket'])) {
+            putenv('AWS_S3_BUCKET=' . $_POST['aws_s3_bucket']);
+        } else if (!getenv('AWS_S3_BUCKET')) {
+            Log::msg("ERROR: AWS S3 bucket not received via POST");
+            $operation = 'error';
+        }
+
+        if (isset($_POST['aws_s3_region'])) {
+            putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
+        } else if (!getenv('AWS_S3_REGION')) {
+            Log::msg("ERROR: AWS S3 region not received via POST");
+            $operation = 'error';
+        }
     }
 }
 
@@ -183,7 +186,7 @@ switch ($operation) {
             Log::msg("Used disk space: $disk->used");
             Log::msg("Used free space: $disk->percentage");
         }
-        break;
+         break;
 
     case 'error': // Error, just exit.
         break;
