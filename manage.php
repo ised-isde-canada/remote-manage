@@ -28,6 +28,9 @@ use RemoteManage\Log;
 use RemoteManage\S3Cmd;
 use RemoteManage\DiskSpace;
 
+// Parameter option or filename.
+$filename = '';
+
 // If using command line...
 $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 
@@ -50,9 +53,6 @@ if ($cli) {
     // Get a filename or other parameter option, if one was passed.
     if (!empty($params[$operation])) {
         $filename = $params[$operation];
-    }
-    else {
-        $filename = '';
     }
 
     // Convert to long form of option if short form was specified.
@@ -88,10 +88,7 @@ if ($cli) {
 }
 else { // Web form post mode.
     $operation = $_REQUEST['operation'];
-
-    if($operation == 'restore' && isset($_POST['filename'])) {
-        $filename = $_POST['filename'];
-    }
+    $filename = $_POST['filename'];
 }
 
 // Ensure filename was specified, if required.
@@ -118,7 +115,7 @@ if ($aws_op) {
         // Get credentials and settings if provided via POST .
         // These would override any settings from the .env file above.
 
-        $envVars = ['aws_access_key', 'aws_secret_access_key', 'aws_s3_bucket', 'aws_s3_region'];
+        $envVars = ['aws_access_key_id', 'aws_secret_access_key', 'aws_s3_bucket', 'aws_s3_region'];
         foreach  ($envVars as $evar) {
             if (isset($_POST[$evar])) {
                 putenv(strtoupper($evar) . '=' . $_POST[$evar]);

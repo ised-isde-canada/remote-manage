@@ -79,7 +79,7 @@ class Site extends BaseSite
                 // Purge all cache (in case we are doing a restore).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 // Disable maintenance mode.
-                SysCmd::exec('php -f admin/cli/maintenance.php --disable', $this->cfg['homedir']);
+                SysCmd::exec('php -f admin/cli/maintenance.php -- --disable', $this->cfg['homedir']);
                 $this->inMaintMode = false;
             }
         }
