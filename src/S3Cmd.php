@@ -72,7 +72,7 @@ class S3Cmd
         return true;
     }
 
-    public function copy($filename, $path) 
+    public function copy($filename, $path)
     {
         if(!$this->error) {
             $uploader = new MultipartUploader($this->s3, $path, [
@@ -87,7 +87,7 @@ class S3Cmd
             }
         } else {
             Log::msg('Unable to execute copy() - error flagged on S3Cmd::__construct');
-            return false;           
+            return false;
         }
 
         return true;

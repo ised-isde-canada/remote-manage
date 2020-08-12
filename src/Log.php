@@ -26,6 +26,21 @@ class Log
     }
 
     /**
+     * Return last message.
+     * @param integer $lastindex Offset from last message. Example 2 would be second to last message in queue.
+     * @return string
+     */
+    public static function getlast($lastindex = 1)
+    {
+        // Handle case where there are not enough elements in the array).
+        $last = count(self::$messages) - 1;
+        if ($last < 1 || $lastindex > $last) {
+            return null;
+        }
+        return self::$messages[count(self::$messages) - $lastindex];
+    }
+
+    /**
      * Set a message. Do not include a newline character at the end of your message!
      * @param string $str
      */

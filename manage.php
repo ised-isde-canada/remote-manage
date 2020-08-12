@@ -18,7 +18,7 @@
  * Please follow the PHP Standards Recommendations at https://www.php-fig.org/psr/
  */
 
-// Use the composer PSR-4 autoloader
+// Use the composer PSR-4 autoloader.
 $loader = require 'vendor/autoload.php';
 $loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
 
@@ -34,7 +34,7 @@ $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 if ($cli) {
     Log::$cli_mode = true;
 
-    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 's' => 'space', 'l' => 's3list', 'd' => 'debug'];
+    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 's' => 'space', 'l' => 's3list', 'm::' => 'maint::', 'd' => 'debug'];
     $params = getopt(join(array_keys($options)), array_values($options));
 
     // If invalid or missing parameter, display help.
@@ -47,14 +47,23 @@ if ($cli) {
     reset($params);
     $operation = key($params);
 
-    // Get a filename if one was passed.
+    // Get a filename or other parameter option, if one was passed.
     if (!empty($params[$operation])) {
         $filename = $params[$operation];
     }
+    else {
+        $filename = '';
+    }
 
     // Convert to long form of option if short form was specified.
-    if (isset($options[$operation])) {
-        $operation = $options[$operation];
+    for ($cnt = 0; $cnt < 3; $cnt++) {
+        // Handle variations if there is one or more colons.
+        $op = $operation . str_repeat(':', $cnt);
+        if (isset($options[$op])) {
+            // Be sure to save long form without colons.
+            $operation = rtrim($options[$op], ':');
+            break;
+        }
     }
 
     // Display help.
@@ -65,11 +74,13 @@ if ($cli) {
         $help .= 'Example: php manage.php --backup' . PHP_EOL;
         $help .= PHP_EOL;
         $help .= 'Must only specify one of the following parameters:' . PHP_EOL;
-        $help .= "--help|-h              Display's this information." . PHP_EOL;
-        $help .= "--backup|-b            Backup this site" . PHP_EOL;
-        $help .= "--restore|-r filename  Restore the specified backup file." . PHP_EOL;
-        $help .= "--s3list|-l            List available backups." . PHP_EOL;
-        $help .= "--space|-s             List disk space information." . PHP_EOL;
+        $help .= '--help | -h               Display this information.' . PHP_EOL;
+        $help .= '--backup | -b             Backup this site' . PHP_EOL;
+        $help .= '--restore | -r <filename> Restore the specified backup file.' . PHP_EOL;
+        $help .= '--s3list | -l             List available backups.' . PHP_EOL;
+        $help .= '--space | -s              List disk space information.' . PHP_EOL;
+        $help .= '--maint | -m = [on/off]   Set site in maintenance (on), prod (off) mode.' . PHP_EOL;
+        $help .= '                          If neither is spacified, will return current state.' . PHP_EOL;
         fwrite(STDERR, $help . PHP_EOL);
         $errcode = 1;
         exit($errcode);
@@ -107,32 +118,14 @@ if ($aws_op) {
         // Get credentials and settings if provided via POST .
         // These would override any settings from the .env file above.
 
-        if (isset($_POST['aws_access_key'])) {
-            putenv('AWS_ACCESS_KEY_ID=' . $_POST['aws_access_key']);
-        } else if (!getenv('AWS_ACCESS_KEY_ID')) {
-            Log::msg("ERROR: AWS access key not received via POST.");
-            $operation = 'error';
-        }
-
-        if (isset($_POST['aws_secret_access_key'])) {
-            putenv('AWS_SECRET_ACCESS_KEY=' . $_POST['aws_secret_access_key']);
-        } else if (!getenv('AWS_SECRET_ACCESS_KEY')) {
-            Log::msg("ERROR: AWS secret access key not received via POST.");
-            $operation = 'error';
-        }
-
-        if (isset($_POST['aws_s3_bucket'])) {
-            putenv('AWS_S3_BUCKET=' . $_POST['aws_s3_bucket']);
-        } else if (!getenv('AWS_S3_BUCKET')) {
-            Log::msg("ERROR: AWS S3 bucket not received via POST");
-            $operation = 'error';
-        }
-
-        if (isset($_POST['aws_s3_region'])) {
-            putenv('AWS_S3_REGION=' . $_POST['aws_s3_region']);
-        } else if (!getenv('AWS_S3_REGION')) {
-            Log::msg("ERROR: AWS S3 region not received via POST");
-            $operation = 'error';
+        $envVars = ['aws_access_key', 'aws_secret_access_key', 'aws_s3_bucket', 'aws_s3_region'];
+        foreach  ($envVars as $evar) {
+            if (isset($_POST[$evar])) {
+                putenv(strtoupper($evar) . '=' . $_POST[$evar]);
+            } else if (!getenv(strtoupper($evar))) {
+                Log::msg("ERROR: AWS $evar not received via POST.");
+                $operation = 'error';
+            }
         }
     }
 }
@@ -145,6 +138,7 @@ Log::msg('Starting at ' . date('H:i:s', $startTime) . '...');
 $site = getSite();
 
 Log::msg('Site type is: ' . $site->siteType);
+Log::msg('Performing ' . trim($operation . ' ' . $filename) . ' operation.');
 
 // Set the site's application name from the request
 /*
@@ -184,9 +178,22 @@ switch ($operation) {
             Log::msg("Total disk space: $disk->total_space");
             Log::msg("Free disk space: $disk->free");
             Log::msg("Used disk space: $disk->used");
-            Log::msg("Used free space: $disk->percentage");
+            Log::msg('Percentage used: ', round($disk->percentage, 2) . '%');
         }
-         break;
+        break;
+
+    case 'maint': // Set site in production mode.
+        switch(strtolower($filename)) { // This is actually mode in this case.
+            case 'on':
+                $site->maintMode(true);
+                break;
+            case 'off':
+                $site->maintMode(false);
+                break;
+            default:
+                Log::msg('Maintenance mode is ' . ($site->inMaintMode ? 'on' : 'off'));
+        }
+        break;
 
     case 'error': // Error, just exit.
         break;

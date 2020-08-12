@@ -24,8 +24,19 @@ class Site extends BaseSite
         $this->cfg['dbuser'] = getenv('DB_USERNAME'); // Database username.
         $this->cfg['dbpass'] = getenv('DB_PASSWORD'); // Database password.
         $this->cfg['dbname'] = getenv('DB_NAME');     // Database name.
-        $this->cfg['moodledata'] = getenv('MOODLE_DATA_DIR');
+        $this->cfg['moodledata'] = getenv('MOODLE_DATA_DIR'); // Persistent volume.
+
+        // Build list of volumes.
         $this->volumes = [$this->cfg['moodledata'], $this->siteDir];
+
+        // Check for existing Moodle site installation
+        $this->siteExists = $this->isInstalled();
+
+        if ($this->siteExists) {
+            // Get current maintenance mode status.
+            SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, true);
+            $this->inMaintMode = (Log::getlast(2) == 'Status: enabled');
+        }
     }
 
     /**
@@ -38,10 +49,19 @@ class Site extends BaseSite
     }
 
     /**
+     * Determine if a Moodle site is installed by locating the .htaccess file in moodledata.
+     * @return boolean If Moodle installation exists (true), or not (false).
+     */
+    public function isInstalled()
+    {
+        return file_exists($this->cfg['moodledata'] . '/.htaccess');
+    }
+
+    /**
      * Take the site in or out of maintenance mode if not already in that mode.
      * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
      */
-    public function maintMode($maint=true)
+    public function maintMode($maint = true)
     {
         if ($maint) {
             if (!$this->inMaintMode) {
@@ -59,7 +79,7 @@ class Site extends BaseSite
                 // Purge all cache (in case we are doing a restore).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 // Disable maintenance mode.
-                SysCmd::exec('rm ' . $this->cfg['moodledata'] . '/climaintenance.html');
+                SysCmd::exec('php -f admin/cli/maintenance.php --disable', $this->cfg['homedir']);
                 $this->inMaintMode = false;
             }
         }

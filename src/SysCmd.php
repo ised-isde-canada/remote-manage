@@ -11,8 +11,10 @@ class SysCmd
      *
      * @param string $cmd The command to be executed.
      * @param string $dir Optional directory from where to execute the command.
+     * @param bool $forcelog Optionally capture command output to log.
+     * @return integer $rc return code from executable.
      */
-    public static function exec($cmd, $dir = '')
+    public static function exec($cmd, $dir = '', $forcelog = false)
     {
         // Change into specified directory if specified.
         if (!empty($dir)) {
@@ -27,10 +29,15 @@ class SysCmd
         // Save the last return code in case the caller wants to retrieve it.
         self::$last_rc = $rc;
 
-        // On error, collect the output in the logs.
-        // We will throw an exception after restoring the current directory.
+        // On error, set force logging.
         if ($rc !== 0) {
+            // We will throw an exception after restoring the current directory.
             Log::msg("ERROR: Command execution failure. Return code=$rc");
+            $forcelog = true;
+        }
+
+        // Log output from recent command execution.
+        if ($forcelog) {
             foreach($output as $msg) {
                 Log::msg($msg);
             }
