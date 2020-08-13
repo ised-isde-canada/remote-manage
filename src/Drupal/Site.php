@@ -37,7 +37,7 @@ class Site extends BaseSite
 
         if ($this->siteExists) {
             // Get current maintenance mode status.
-            $this->inMaintMode = SysCmd::exec($this->cfg['drush'] . ' state:get system.maintenance_mode');
+            $this->inMaintMode = SysCmd::exec($this->cfg['drush'] . ' state:get system.maintenance_mode', false, true);
         }
     }
 
