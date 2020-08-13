@@ -14,7 +14,7 @@ class SysCmd
      * @param bool $forcelog Optionally capture command output to log.
      * @return integer $rc return code from executable.
      */
-    public static function exec($cmd, $dir = '', $forcelog = false)
+    public static function exec($cmd, $dir = '', $forceLog = false, $allowErrors = false)
     {
         // Change into specified directory if specified.
         if (!empty($dir)) {
@@ -33,11 +33,11 @@ class SysCmd
         if ($rc !== 0) {
             // We will throw an exception after restoring the current directory.
             Log::msg("ERROR: Command execution failure. Return code=$rc");
-            $forcelog = true;
+            $forceLog = true;
         }
 
         // Log output from recent command execution.
-        if ($forcelog) {
+        if ($forceLog) {
             foreach($output as $msg) {
                 Log::msg($msg);
             }
@@ -50,7 +50,7 @@ class SysCmd
         }
 
         // On error, throw an exception.
-        if ($rc !== 0) {
+        if ($rc !== 0 && !$allowErrors) {
             throw new \Exception("Command execution failure. Return code=$rc");
         }
 
