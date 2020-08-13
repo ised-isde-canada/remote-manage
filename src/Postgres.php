@@ -54,17 +54,15 @@ class Postgres
         $this->createPassFile($db);
 
         try {
-            SysCmd::exec(sprintf('pg_restore --no-privileges --no-owner -h %s -p %s -U %s -d %s -F t -c %s 2>&1',
+            SysCmd::exec(sprintf('pg_restore --no-privileges --no-owner -h %s -p %s -U %s -d %s -F t %s 2>&1',
                 $db['host'],
                 $db['port'],
                 $db['user'],
                 $db['name'],
                 $db['file']
-            ), $site->cfg['tmpdir']);
+            ), $site->cfg['tmpdir'], FALSE, TRUE);
         }
         catch (\Exception $e) {
-            $this->removePassFile();
-            return false;
         }
 
         $this->removePassFile();
@@ -90,7 +88,12 @@ class Postgres
             return false;
         }
 
-        $result = pg_query($conn, 'select relname from pg_stat_user_tables order by relname;');
+        // Functions 'SELECT routines.routine_name FROM information_schema.routines ORDER BY routines.routine_name;'
+        // ALL tables 'SELECT table_name FROM information_schema.tables ORDER BY table_name;'
+
+        // User tables 'SELECT relname FROM pg_stat_user_tables ORDER BY relname;'
+
+        $result = pg_query($conn, "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;");
         if (empty($result)) {
             // No tables found in the database.
             Log::msg("Database $dbname was already empty.");
@@ -98,10 +101,10 @@ class Postgres
             // Loop through list of tables dropping them.
             Log::msg("Dropping tables in database $dbname.");
             while ($table = pg_fetch_row($result)) {
-                pg_query($conn, 'DROP TABLE IF EXISTS $table[0]');
+                pg_query($conn, "DROP TABLE IF EXISTS $table[0] CASCADE;");
             }
         }
-
+        
         pg_close($conn);
 
         return true;
