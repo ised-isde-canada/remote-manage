@@ -13,10 +13,11 @@ abstract class BaseSite
     public    $cfg = [];                 // Configuration data
     public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
     public    $siteExists = null;        // Flag to indicate if the site already exists or will be newly created
-    public    $inMaintMode = false;      // Flag to indicate that the site is in maintenance mode
+    public    $inMaintMode = false;      // Flag to indicate whether or not the site is in maintenance mode
     private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time)
     private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
     private   $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly)
+    private   $backupDir = ['D' => 'daily', 'W' => 'weekly', 'M' => 'monthly'];
     private   $restoreTarFile = null;    // Filename of the backup tar file received by restore POST request
 
     public function __construct()
@@ -47,10 +48,8 @@ abstract class BaseSite
             $this->backupType = 'W';
         }
 
-        $backupDir = ['D' => 'daily', 'W' => 'weekly', 'M' => 'monthly'];
         // Set the name of the backup tar file.
-        $this->backupTarFile = sprintf('%s/%s-%s-%s.tar',
-            $backupDir[$this->backupType],
+        $this->backupTarFile = sprintf('%s-%s-%s.tar',
             $this->appEnv,
             date('Y-m-d_H-i'),
             $this->backupType
@@ -161,10 +160,11 @@ abstract class BaseSite
      */
     protected function copyToArchive()
     {
+        $filename = $this->backupDir[$this->backupType] . '/' . $this->backupTarFile;
         $path = $this->cfg['tmpdir'] . '/' . $this->backupTarFile;
         $s3 = new S3Cmd();
         try {
-            $s3->copy($this->backupTarFile, $path);
+            $s3->copy($filename, $path);
         }
         catch (\Exception $e) {
             $this->cleanup();
@@ -271,7 +271,6 @@ abstract class BaseSite
             $this->maintMode(true);
         }
         
-
         // Fails if there is neither a database or directories to be restored.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
@@ -341,7 +340,8 @@ abstract class BaseSite
      */
     protected function getBackupArchive()
     {
-        $path = $this->cfg['tmpdir'] . '/' . $this->restoreTarFile;
+        $filename = preg_replace('~^(.*[\/])~', '', $this->restoreTarFile);
+        $path = $this->cfg['tmpdir'] . '/' . $filename;
         $s3 = new S3Cmd();
         try {
             $s3->getFile($this->restoreTarFile, $path);
