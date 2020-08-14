@@ -17,7 +17,7 @@ class Site extends BaseSite
         parent::__construct();
 
         $this->siteType = 'drupal';
-        $this->sitesDir = $this->cfg['homedir'] . '/data/sites';
+        $this->sitesDir = $this->cfg['homedir'] . '/data';
 
         // Set the database configuration parameters.
         $this->cfg['dbhost'] = getenv('DB_HOST');
