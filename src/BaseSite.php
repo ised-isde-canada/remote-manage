@@ -12,10 +12,11 @@ abstract class BaseSite
     public    $appEnv = 'dev';           // Environment: dev, test, qa, prod
     public    $cfg = [];                 // Configuration data
     public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
-    public    $siteExists = null;         // Flag to indicate if the site already exists or will be newly created
+    public    $siteExists = null;        // Flag to indicate if the site already exists or will be newly created
     public    $inMaintMode = false;      // Flag to indicate that the site is in maintenance mode
     private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time)
     private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
+    private   $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly)
     private   $restoreTarFile = null;    // Filename of the backup tar file received by restore POST request
 
     public function __construct()
@@ -39,19 +40,20 @@ abstract class BaseSite
         Log::msg("Backup process is running...");
 
         // Use the current date and time to determine backup type as one of: D (daily), W (weekly), M (monthly).
-        $backupType = 'D'; // Default to Daily
         if (date('j') == 1) { // First day of the month
-            $backupType = 'M';
+            $this->backupType = 'M';
         }
         else if (date('w') == 0) { // Sunday
-            $backupType = 'W';
+            $this->backupType = 'W';
         }
 
+        $backupDir = ['D' => 'daily', 'W' => 'weekly', 'M' => 'monthly'];
         // Set the name of the backup tar file.
-        $this->backupTarFile = sprintf('%s-%s-%s.tar',
+        $this->backupTarFile = sprintf('%s/%s-%s-%s.tar',
+            $backupDir[$this->backupType],
             $this->appEnv,
             date('Y-m-d_H-i'),
-            $backupType
+            $this->backupType
         );
 
         // Put site into maintenance mode.
