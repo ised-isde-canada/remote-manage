@@ -64,7 +64,7 @@ class Site extends BaseSite
     public function deleteFiles()
     {
         Log::msg("Deleting moodledata files.");
-        SysCmd::exec('rm -rf ' . $this->cfg['moodledata'] . '/{*,.*}');
+        SysCmd::exec('shopt -s dotglob && rm -rf ' . $this->cfg['moodledata'] . '/*');
         return (count(scandir($this->cfg['moodledata'])) == 2);
     }
 

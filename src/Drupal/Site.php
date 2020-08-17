@@ -66,7 +66,7 @@ class Site extends BaseSite
      */
     public function deleteFiles()
     {
-        Log::msg("Deleting files.");
+        Log::msg("Deleting files (not yet implemented).");
         //SysCmd::exec('rm -rf ' . $this->cfg['moodledata'] . '/{*,.*}');
         return true; // (count(scandir($this->cfg['moodledata'])) == 2);
     }
