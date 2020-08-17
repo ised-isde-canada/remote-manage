@@ -58,6 +58,17 @@ class Site extends BaseSite
     }
 
     /**
+     * Delete files in moodledata without deleting directory itself.
+     * @return boolean If successful (true), or failed (false).
+     */
+    public function deleteFiles()
+    {
+        Log::msg("Deleting moodledata files.");
+        SysCmd::exec('rm -rf ' . $this->cfg['moodledata'] . '/{*,.*}');
+        return (count(scandir($this->cfg['moodledata'])) == 2);
+    }
+
+    /**
      * Take the site in or out of maintenance mode if not already in that mode.
      * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
      */
@@ -65,7 +76,7 @@ class Site extends BaseSite
     {
         if ($maint) {
             if (!$this->inMaintMode) {
-                Log::msg("Enter maintenance mode");
+                Log::msg("Entering maintenance mode");
                 // Enable maintenance mode.
                 SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
                 // Purge all cache (no need to backup temp files).
@@ -75,7 +86,7 @@ class Site extends BaseSite
         }
         else {
             if ($this->inMaintMode) {
-                Log::msg("Exit maintenance mode");
+                Log::msg("Exiting maintenance mode");
                 // Purge all cache (in case we are doing a restore).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 // Disable maintenance mode.

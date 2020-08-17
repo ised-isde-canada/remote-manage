@@ -104,7 +104,7 @@ class Postgres
                 pg_query($conn, "DROP TABLE IF EXISTS $table[0] CASCADE;");
             }
         }
-        
+
         pg_close($conn);
 
         return true;

@@ -37,7 +37,7 @@ $cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 if ($cli) {
     Log::$cli_mode = true;
 
-    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 's' => 'space', 'l' => 's3list', 'm::' => 'maint::', 'd' => 'debug'];
+    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 's' => 'space', 'l' => 's3list', 'm::' => 'maint::', 'd' => 'delete', 'v' => 'verbose'];
     $params = getopt(join(array_keys($options)), array_values($options));
 
     // If invalid or missing parameter, display help.
@@ -73,14 +73,17 @@ if ($cli) {
         $help .= 'Purpose: Backup or restore a website.' . PHP_EOL;
         $help .= 'Example: php manage.php --backup' . PHP_EOL;
         $help .= PHP_EOL;
-        $help .= 'Must only specify one of the following parameters:' . PHP_EOL;
-        $help .= '--help | -h               Display this information.' . PHP_EOL;
+        $help .= 'Must specify only one of the following parameters first:' . PHP_EOL;
         $help .= '--backup | -b             Backup this site' . PHP_EOL;
+        $help .= '--delete | -d             Delete database and persistent volumne files.' . PHP_EOL;
+        $help .= '--help | -h               Display this information.' . PHP_EOL;
+        $help .= '--maint | -m = [on/off]   Set site in maintenance (on), prod (off) mode.' . PHP_EOL;
+        $help .= '                          If neither is spacified, will return current state.' . PHP_EOL;
         $help .= '--restore | -r <filename> Restore the specified backup file.' . PHP_EOL;
         $help .= '--s3list | -l             List available backups.' . PHP_EOL;
         $help .= '--space | -s              List disk space information.' . PHP_EOL;
-        $help .= '--maint | -m = [on/off]   Set site in maintenance (on), prod (off) mode.' . PHP_EOL;
-        $help .= '                          If neither is spacified, will return current state.' . PHP_EOL;
+        $help .= 'May be combined with others:' . PHP_EOL;
+        $help .= '--verbose | -v            Display additional information during execution.' . PHP_EOL;
         fwrite(STDERR, $help . PHP_EOL);
         $errcode = 1;
         exit($errcode);
@@ -89,6 +92,12 @@ if ($cli) {
 else { // Web form post mode.
     $operation = $_REQUEST['operation'];
     $filename = $_POST['filename'];
+}
+
+// Enable verbose mode if requested.
+define($DEBUGMODE, isset($param['v']) || isset($param['verbose']));
+if ($DEBUGMODE) {
+    echo 'Verbose mode is enabled.' . ($cli ? PHP_EOL : '<br>');
 }
 
 // Ensure filename was specified, if required.
@@ -120,7 +129,7 @@ if ($aws_op) {
             if (isset($_POST[$evar])) {
                 putenv(strtoupper($evar) . '=' . $_POST[$evar]);
             } else if (!getenv(strtoupper($evar))) {
-                Log::msg("ERROR: AWS $evar not received via POST.");
+                Log::msg("ERROR: AWS $evar missing.");
                 $operation = 'error';
             }
         }
@@ -161,6 +170,11 @@ switch ($operation) {
 
     case 'restore':
         $site->restore($startTime, $filename);
+        break;
+
+    case 'delete':
+        $site->dropTables($db);
+        $site->deleteFiles();
         break;
 
     case 's3list': // temporary, for testing
@@ -205,14 +219,13 @@ Log::msg('Job started at ' . date('H:i:s', $startTime) . ' and finished at ' . d
 Log::msg('Total execution time was ' . date('H:i:s', $endTime - $startTime) . '.');
 
 // If using the CLI, we're done. The message were already printed out as they happened.
-if ($cli) {
-    exit;
+if (!$cli) {
+    // Create the JSON response
+    $json = [];
+    $json['messages'] = Log::get();
+
+    // Exit with appropriate HTTP header and a valid JSON response.
+    header('Content-type: application/json; charset=utf-8');
+    echo json_encode($json, JSON_PRETTY_PRINT) . PHP_EOL;
 }
 
-// Create the JSON response
-$json = [];
-$json['messages'] = Log::get();
-
-// Exit with appropriate HTTP header and a valid JSON response.
-header('Content-type: application/json; charset=utf-8');
-echo json_encode($json, JSON_PRETTY_PRINT) . PHP_EOL;

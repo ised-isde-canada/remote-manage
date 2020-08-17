@@ -59,6 +59,18 @@ class Site extends BaseSite
         return file_exists($this->sitesDir . '/settings.php');
     }
 
+
+    /**
+     * Delete files without deleting directory itself.
+     * @return boolean If successful (true), or failed (false).
+     */
+    public function deleteFiles()
+    {
+        Log::msg("Deleting files.");
+        //SysCmd::exec('rm -rf ' . $this->cfg['moodledata'] . '/{*,.*}');
+        return true; // (count(scandir($this->cfg['moodledata'])) == 2);
+    }
+
     /**
      * Take the site in or out of maintenance mode if not already in that mode.
      * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
