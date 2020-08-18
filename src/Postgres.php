@@ -90,19 +90,21 @@ class Postgres
 
         // Functions 'SELECT routines.routine_name FROM information_schema.routines ORDER BY routines.routine_name;'
         // ALL tables 'SELECT table_name FROM information_schema.tables ORDER BY table_name;'
-
         // User tables 'SELECT relname FROM pg_stat_user_tables ORDER BY relname;'
 
         $result = pg_query($conn, "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;");
-        if (empty($result)) {
-            // No tables found in the database.
-            Log::msg("Database $dbname was already empty.");
+        if (!$result) {
+            Log::msg("ERROR: pg_query for dropTables() failed.");
         } else {
-            // Loop through list of tables dropping them.
-            Log::msg("Dropping tables in database $dbname.");
-            while ($table = pg_fetch_row($result)) {
-                pg_query($conn, "DROP TABLE IF EXISTS $table[0] CASCADE;");
-            }
+            Log::msg("Dropping tables in database $dbname...");
+            if (pg_num_rows($result) == 0) {
+                Log::msg("No tables found in database $dbname.");
+            } else {
+                while ($row = pg_fetch_assoc($result)) {
+                    $table = $row['tablename'];
+                    pg_query($conn, "DROP TABLE IF EXISTS $table CASCADE;");
+                }
+            } 
         }
 
         pg_close($conn);
