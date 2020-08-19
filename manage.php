@@ -28,8 +28,11 @@ use RemoteManage\Log;
 use RemoteManage\S3Cmd;
 use RemoteManage\DiskSpace;
 
-// Set timeout to 5 minutes.
-set_time_limit(300);
+// Set timeout to 3 hours.
+set_time_limit(10800);
+
+// Keep session alive.
+header("Connection: Keep-alive");
 
 // Parameter option or filename.
 $filename = '';

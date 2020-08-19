@@ -42,13 +42,22 @@ class Log
 
     /**
      * Set a message. Do not include a newline character at the end of your message!
+     * @param string $status
+     * @param bool $log If true, adds to json.
      * @param string $str
      */
-    public static function msg($str)
+    public static function msg($str, $log = false)
     {
         if (self::$cli_mode) {
-            echo $str . PHP_EOL;
+            echo $str . " (status $status)" . PHP_EOL;
         }
-        self::$messages[] = $str;
+        else {
+            echo $str . " (status $status)<br>";
+            flush();
+            ob_flush();
+        }
+        if ($log) {
+            self::$messages[] = $str;
+        }
     }
 }

@@ -161,17 +161,21 @@ abstract class BaseSite
      */
     protected function copyToArchive()
     {
+        Log::msg('Starting copyToArchive()');
         $filename = $this->backupDir[$this->backupType] . '/' . $this->backupTarFile;
         $path = $this->cfg['tmpdir'] . '/' . $this->backupTarFile;
         $s3 = new S3Cmd();
+        Log::msg('Transfering to S3.');
         try {
             $s3->copy($filename, $path);
         }
         catch (\Exception $e) {
+            Log::msg('ERROR: Failed to transfer backup file to S3.');
             $this->cleanup();
             return false;
         }
 
+        Log::msg('Transfer complete.');
         return true;
     }
 
