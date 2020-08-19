@@ -18,7 +18,8 @@ abstract class BaseSite
     private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
     private   $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly)
     private   $backupDir = ['D' => 'daily', 'W' => 'weekly', 'M' => 'monthly'];
-    private   $restoreTarFile = null;    // Filename of the backup tar file received by restore POST request
+    private   $restoreArchive = null;    // S3 path of archive file (e.g. starts with daily/ ) as requested
+    private   $restoreTarFile = null;    // Actual filename of the archive tar file
 
     public function __construct()
     {
@@ -59,7 +60,7 @@ abstract class BaseSite
         if ($this->siteExists) {
             $this->maintMode(true);
         }
-        
+
         // Fails if there is neither a database or directories to be backed-up.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
@@ -97,7 +98,7 @@ abstract class BaseSite
 
     /**
      * Backup the Database.
-     * 
+     *
      * @return boolean
      */
     protected function backupDatabase()
@@ -155,7 +156,7 @@ abstract class BaseSite
 
     /**
      * Copy gzip file to S3.
-     * 
+     *
      * @return boolean
      */
     protected function copyToArchive()
@@ -170,7 +171,7 @@ abstract class BaseSite
             $this->cleanup();
             return false;
         }
-       
+
         return true;
     }
 
@@ -251,7 +252,7 @@ abstract class BaseSite
      * maintain the state of $this->inMaintMode.
      *
      * @param boolean $maint In maintenance mode (true), otherwise false.
-     * 
+     *
      * @return boolean $success Successful (true), failed (false).
      */
     abstract public function maintMode($maint=true);
@@ -264,13 +265,14 @@ abstract class BaseSite
     public function restore($startTime, $backupFile)
     {
         Log::msg("Restore process is running...");
-        $this->restoreTarFile = $backupFile;
-        
+        $this->restoreArchive = $backupFile;
+        $this->restoreTarFile = basename($backupFile);
+
         // Put site into maintenance mode.
         if ($this->siteExists) {
             $this->maintMode(true);
         }
-        
+
         // Fails if there is neither a database or directories to be restored.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
@@ -288,17 +290,17 @@ abstract class BaseSite
         if ($success) {
             $success = $this->unzipArchive();
         }
-        
+
         // Restore database.
         if ($success && !empty($this->cfg['dbname'])) {
             $success = $this->restoreDatabase();
         }
-        
+
         // Restore files, if any.
         if ($success && !empty($this->volumes)) {
             $success = $this->restoreVolumes();
         }
-        
+
         // Display elapsed time..
         $endTime = microtime(true);
         Log::msg('Elapsed execution time is ' . date('H:i:s', $endTime - $startTime) . '.');
@@ -321,8 +323,8 @@ abstract class BaseSite
             'host' => $this->cfg['dbhost'],
             'port' => $this->cfg['dbport'],
             'user' => $this->cfg['dbuser'],
-            'pass' => $this->cfg['dbpass'], 
-            'name' => $this->cfg['dbname'],  
+            'pass' => $this->cfg['dbpass'],
+            'name' => $this->cfg['dbname'],
         ]);
         if (!$success) {
             Log::msg('Failed to drop database tables!');
@@ -340,11 +342,9 @@ abstract class BaseSite
      */
     protected function getBackupArchive()
     {
-        $filename = preg_replace('~^(.*[\/])~', '', $this->restoreTarFile);
-        $path = $this->cfg['tmpdir'] . '/' . $filename;
         $s3 = new S3Cmd();
         try {
-            $s3->getFile($this->restoreTarFile, $path);
+          $s3->getFile($this->restoreArchive, $this->cfg['tmpdir'] . '/' . $this->restoreTarFile);
         }
         catch (\Exception $e) {
             $this->cleanup();
@@ -370,7 +370,7 @@ abstract class BaseSite
             $this->cleanup();
             return false;
         }
-        
+
         $this->restoreTarFile = preg_replace('/\.gz$/', '', $this->restoreTarFile);
 
         try {
@@ -443,7 +443,7 @@ abstract class BaseSite
             catch (\Exception $e) {
                 $this->cleanup();
                 return false;
-            } 
+            }
         }
         return true;
     }

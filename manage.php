@@ -68,25 +68,8 @@ if ($cli) {
 
     // Display help.
     if ($operation == 'help') {
-        $help = 'Manage v1.0 - July 2020' . PHP_EOL;
-        $help .= 'Written by: Duncan Sutter, Samantha Tripp and Michael Milette' . PHP_EOL;
-        $help .= 'Purpose: Backup or restore a website.' . PHP_EOL;
-        $help .= 'Example: php manage.php --backup' . PHP_EOL;
-        $help .= PHP_EOL;
-        $help .= 'Must specify only one of the following parameters first:' . PHP_EOL;
-        $help .= '--backup | -b             Backup this site' . PHP_EOL;
-        $help .= '--delete | -d             Delete database and persistent volumne files.' . PHP_EOL;
-        $help .= '--help | -h               Display this information.' . PHP_EOL;
-        $help .= '--maint | -m = [on/off]   Set site in maintenance (on), prod (off) mode.' . PHP_EOL;
-        $help .= '                          If neither is spacified, will return current state.' . PHP_EOL;
-        $help .= '--restore | -r <filename> Restore the specified backup file.' . PHP_EOL;
-        $help .= '--s3list | -l             List available backups.' . PHP_EOL;
-        $help .= '--space | -s              List disk space information.' . PHP_EOL;
-        $help .= 'May be combined with others:' . PHP_EOL;
-        $help .= '--verbose | -v            Display additional information during execution.' . PHP_EOL;
-        fwrite(STDERR, $help . PHP_EOL);
-        $errcode = 1;
-        exit($errcode);
+        fwrite(STDERR, file_get_contents(__DIR__ . '/help.txt'));
+        exit(1);
     }
 }
 else { // Web form post mode.
@@ -146,17 +129,7 @@ $site = getSite();
 Log::msg('Site type is: ' . $site->siteType);
 Log::msg('Performing ' . trim($operation . ' ' . $filename) . ' operation.');
 
-// Set the site's application name from the request
-/*
-TODO: Set the default based on environment vars
-Here are some OpenShift vars from the Drupal environment. App name is "manage"
-OPENSHIFT_BUILD_SOURCE=https://github.com/dsutter-gc/manage-site-wxt.git
-OPENSHIFT_BUILD_NAME=manage-30
-OPENSHIFT_BUILD_COMMIT=32724cf94432a776c510f53f49240f0edc810de6
-OPENSHIFT_BUILD_NAMESPACE=ciodrcoe-dev
-OPENSHIFT_BUILD_REFERENCE=ised
- */
-
+// Get the application name from the environment
 if (empty($site->appEnv = getenv('APP_NAME'))) {
     Log::msg("ERROR: APP_NAME is undefined.");
     $operation = 'error';
@@ -177,7 +150,7 @@ switch ($operation) {
         $site->deleteFiles();
         break;
 
-    case 's3list': // temporary, for testing
+    case 's3list':
         $s3 = new S3Cmd();
         $s3->getList();
         break;
@@ -228,4 +201,3 @@ if (!$cli) {
     header('Content-type: application/json; charset=utf-8');
     echo json_encode($json, JSON_PRETTY_PRINT) . PHP_EOL;
 }
-
