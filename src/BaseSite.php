@@ -292,6 +292,7 @@ abstract class BaseSite
         }
 
         // Restore database.
+        // TODO option to restore database only
         if ($success && !empty($this->cfg['dbname'])) {
             $success = $this->restoreDatabase();
         }
@@ -435,8 +436,8 @@ abstract class BaseSite
             }
 
             try {
-                SysCmd::exec(sprintf('cp -Rf %s %s',
-                    $backupDir . '/*',
+                SysCmd::exec(sprintf('rsync -av %s %s',
+                    $backupDir . '/',
                     $volume . '/'
                 ), $this->cfg['tmpdir']);
             }
