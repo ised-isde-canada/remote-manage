@@ -28,6 +28,9 @@ use RemoteManage\Log;
 use RemoteManage\S3Cmd;
 use RemoteManage\DiskSpace;
 
+// Set timeout to 5 minutes.
+set_time_limit(300);
+
 // Parameter option or filename.
 $filename = '';
 
