@@ -18,6 +18,7 @@ class Log
 
     /**
      * Return an array of all messages.
+     *
      * @return array
      */
     public static function get()
@@ -27,7 +28,9 @@ class Log
 
     /**
      * Return last message.
+     *
      * @param integer $lastindex Offset from last message. Example 2 would be second to last message in queue.
+     *
      * @return string
      */
     public static function getlast($lastindex = 1)
@@ -42,21 +45,23 @@ class Log
 
     /**
      * Set a message. Do not include a newline character at the end of your message!
-     * @param string $status
-     * @param bool $log If true, adds to json.
-     * @param string $str
+     *
+     * @param string $str  Text to be added to messages.
+     * @param string $type Adds to json.
+     *
+     * @return null
      */
-    public static function msg($str, $log = false)
+    public static function msg($str, $type = 'msg')
     {
         if (self::$cli_mode) {
-            echo $str . " (status $status)" . PHP_EOL;
+            echo $str . PHP_EOL;
         }
         else {
-            echo $str . " (status $status)<br>";
+            echo $str . '<br>';
             flush();
             ob_flush();
         }
-        if ($log) {
+        if ($type = 'msg') {
             self::$messages[] = $str;
         }
     }

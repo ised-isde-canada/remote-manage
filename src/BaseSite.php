@@ -21,6 +21,9 @@ abstract class BaseSite
     private   $restoreArchive = null;    // S3 path of archive file (e.g. starts with daily/ ) as requested
     private   $restoreTarFile = null;    // Actual filename of the archive tar file
 
+    /**
+     * Initializing configuration settings.
+     */
     public function __construct()
     {
         $this->cfg['homedir'] = getenv('HOME');
@@ -50,7 +53,8 @@ abstract class BaseSite
         }
 
         // Set the name of the backup tar file.
-        $this->backupTarFile = sprintf('%s-%s-%s.tar',
+        $this->backupTarFile = sprintf(
+            '%s-%s-%s.tar',
             $this->appEnv,
             date('Y-m-d_H-i'),
             $this->backupType
@@ -83,14 +87,17 @@ abstract class BaseSite
 
         // Create GZIP file.
         if ($success) {
+            Log::msg('Creating GZIP file');
             $success = $this->createZip();
         }
 
         // Transfer GZIP file to S3.
         if ($success) {
+            Log::msg('Transfering GZIP file to S3');
             $success = $this->copyToArchive();
         }
 
+        Log::msg('Cleaning up');
         $this->cleanup();
 
         return $success;
@@ -105,14 +112,14 @@ abstract class BaseSite
     {
         $db = new Postgres();
 
-        $success = $db->backup([
-            'host' => $this->cfg['dbhost'],
+        $success = $db->backup(
+            ['host' => $this->cfg['dbhost'],
             'port' => $this->cfg['dbport'],
             'user' => $this->cfg['dbuser'],
             'pass' => $this->cfg['dbpass'],
             'name' => $this->cfg['dbname'],
-            'file' => 'database.tar',
-        ]);
+            'file' => 'database.tar']
+        );
         if (!$success) {
             Log::msg("Database backup failed!");
             $this->cleanup();
@@ -138,7 +145,8 @@ abstract class BaseSite
             $backupDir = basename($volume);
             $backupFile = "$backupDir-backup.tar";
             try {
-                SysCmd::exec(sprintf('tar cf %s %s 2>&1',
+                SysCmd::exec(sprintf(
+                    'tar cf %s %s',
                     $this->cfg['tmpdir'] . '/' . $backupFile,
                     $backupDir
                 ), $parentDir);
@@ -205,11 +213,12 @@ abstract class BaseSite
 
         // Now gzip it up
         try {
-            SysCmd::exec(sprintf('gzip -f %s 2>&1',
+            SysCmd::exec(sprintf('gzip -f %s',
                 $this->backupTarFile
             ), $this->cfg['tmpdir']);
         }
         catch (\Exception $e) {
+            Log::msg('ERROR: Oh no! GZIP failed.');
             $this->cleanup();
             return false;
         }
@@ -217,6 +226,7 @@ abstract class BaseSite
         // Update the name now that it's zipped
         $this->backupTarFile .= '.gz';
 
+        Log::msg('Looks like we made a GZIP!');
         return true;
     }
 
@@ -264,7 +274,7 @@ abstract class BaseSite
     /**
      * Delete files within persistent volumes, without deleting
      * the directory itself.
-     * 
+     *
      * @return boolean $success Successful (true), failed (false)
      */
     abstract public function deleteFiles();

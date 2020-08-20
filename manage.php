@@ -104,7 +104,7 @@ if ($aws_op) {
     if (($env = @file(__DIR__ . '/.env')) !== false) {
         foreach ($env as $e) {
             if (!empty($e = trim($e))) {
-            putenv($e);
+                putenv($e);
             }
         }
     }
@@ -114,7 +114,7 @@ if ($aws_op) {
         // These would override any settings from the .env file above.
 
         $envVars = ['aws_access_key_id', 'aws_secret_access_key', 'aws_s3_bucket', 'aws_s3_region'];
-        foreach  ($envVars as $evar) {
+        foreach ($envVars as $evar) {
             if (isset($_POST[$evar])) {
                 putenv(strtoupper($evar) . '=' . $_POST[$evar]);
             } else if (!getenv(strtoupper($evar))) {
