@@ -61,14 +61,34 @@ class Site extends BaseSite
 
 
     /**
-     * Delete files without deleting directory itself.
-     * @return boolean If successful (true), or failed (false).
+     * Delete files within persistent volumes, without deleting
+     * the directory itself.
+     * 
+     * @return boolean Successful (true), failed (false).
      */
     public function deleteFiles()
     {
-        Log::msg("Deleting files (not yet implemented).");
-        //SysCmd::exec('rm -rf ' . $this->cfg['moodledata'] . '/{*,.*}');
-        return true; // (count(scandir($this->cfg['moodledata'])) == 2);
+        foreach ($this->volumes as $volume) {
+            Log::msg("Deleting files in $volume.");
+            try {
+                SysCmd::exec(sprintf('rm -rf %s',
+                    $volume
+                ));
+            } 
+            catch (\Exception $e) {
+                return false;
+            }
+
+            try {
+                SysCmd::exec(sprintf('mkdir %s',
+                    $volume
+                ));
+            }
+            catch (\Exception $e) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

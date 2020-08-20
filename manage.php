@@ -152,7 +152,7 @@ switch ($operation) {
         break;
 
     case 'delete':
-        $site->dropTables($db);
+        $site->dropTables();
         $site->deleteFiles();
         break;
 

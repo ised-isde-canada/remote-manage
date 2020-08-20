@@ -262,6 +262,14 @@ abstract class BaseSite
     abstract public function maintMode($maint=true);
 
     /**
+     * Delete files within persistent volumes, without deleting
+     * the directory itself.
+     * 
+     * @return boolean $success Successful (true), failed (false)
+     */
+    abstract public function deleteFiles();
+
+    /**
      * Restore a site, using parameters provided in the POST and local configuration.
      *
      * @return boolean
