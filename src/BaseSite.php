@@ -298,11 +298,6 @@ abstract class BaseSite
         // Fails if there is neither a database or directories to be restored.
         $success = empty($this->cfg['dbname'] && empty($this->volumes));
 
-        // Drop database tables
-        if ($success) {
-            $success = $this->dropTables();
-        }
-
         // Get selected backup archive from S3 bucket.
         if ($success) {
             $success = $this->getBackupArchive();
@@ -311,6 +306,11 @@ abstract class BaseSite
         // Unzip backup archive.
         if ($success) {
             $success = $this->unzipArchive();
+        }
+
+        // Drop database tables
+        if ($success) {
+            $success = $this->dropTables();
         }
 
         // Restore database.
