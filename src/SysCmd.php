@@ -16,7 +16,7 @@ class SysCmd
      *
      * @return integer $rc       Return code from executable.
      */
-    public static function exec($cmd, $dir = '', $forceLog = false, $allowErrors = false)
+    public static function exec($cmd, $dir = '', $allowErrors = false)
     {
         // Change into specified directory if specified.
         if (!empty($dir)) {
@@ -29,8 +29,8 @@ class SysCmd
         if (strpos($cmd, 'gzip ') === 0 || strpos($cmd, 'tar ') === 0) {
             Log::msg('Forking the background process...');
             Log::msg($cmd);
-            flush();
             if (!Log::$cli_mode) {
+                flush();
                 ob_flush();
             }
             $site = getSite();
@@ -50,9 +50,12 @@ class SysCmd
                     $status['running'] = false;
                 }
                 if (!empty($status['running'])) {
-                    if (!Log::$cli_mode) {
+                    if (Log::$cli_mode) {
+                        echo '.';
+                    }
+                    else {
                         // Waiting for you know who to finish work.
-                        echo ' ';
+                        echo PHP_EOL; // This line keeps the connection alive.
                         flush();
                         ob_flush();
                     }
@@ -77,18 +80,14 @@ class SysCmd
         // Save the last return code in case the caller wants to retrieve it.
         self::$last_rc = $rc;
 
-        // On error, set force logging.
-        if ($rc !== 0) {
-            // We will throw an exception after restoring the current directory.
-            Log::msg("ERROR: Command execution failure. Return code=$rc");
-            $forceLog = true;
+        // Log output from recent command execution.
+        foreach($output as $msg) {
+            Log::msg($msg);
         }
 
-        // Log output from recent command execution.
-        if ($forceLog) {
-            foreach($output as $msg) {
-                Log::msg($msg);
-            }
+        if ($rc !== 0 && !$allowErrors) {
+            // We will throw an exception after restoring the current directory.
+            Log::error("Command $cmd execution failure. Return code=$rc");
         }
 
         // Restore current directory back to its original state, if needed.
@@ -99,7 +98,7 @@ class SysCmd
 
         // On error, throw an exception.
         if ($rc !== 0 && !$allowErrors) {
-            throw new \Exception("Command execution failure. Return code=$rc");
+            throw new \Exception("Command $cmd execution failure. Return code=$rc");
         }
 
         return $rc;

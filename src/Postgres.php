@@ -34,7 +34,7 @@ class Postgres
             ), $site->cfg['tmpdir']);
         }
         catch (\Exception $e) {
-            Log::msg("Caught exception from pg_dump");
+            Log::error("Caught exception from pg_dump");
             $this->removePassFile();
             return false;
         }
@@ -84,7 +84,7 @@ class Postgres
             $db['pass']
         ));
         if (!$conn) {
-            Log::msg("Failed to connect to database $dbname.");
+            Log::error("Failed to connect to database $dbname.");
             return false;
         }
 
@@ -94,7 +94,7 @@ class Postgres
 
         $result = pg_query($conn, "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;");
         if (!$result) {
-            Log::msg("ERROR: pg_query for dropTables() failed.");
+            Log::error("pg_query for dropTables() failed.");
         } else {
             Log::msg("Dropping tables in database $dbname...");
             if (pg_num_rows($result) == 0) {
@@ -104,7 +104,7 @@ class Postgres
                     $table = $row['tablename'];
                     pg_query($conn, "DROP TABLE IF EXISTS $table CASCADE;");
                 }
-            } 
+            }
         }
 
         pg_close($conn);

@@ -26,3 +26,4 @@ function getSite()
 
     return $site;
 }
+

@@ -35,7 +35,7 @@ class Site extends BaseSite
         if ($this->siteExists) {
             // Get current maintenance mode status.
             SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, true);
-            $this->inMaintMode = (Log::getlast(2) == 'Status: enabled');
+            $this->inMaintMode = (Log::getlast(2, 'msg') == 'Status: enabled');
         }
     }
 

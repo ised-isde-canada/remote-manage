@@ -121,7 +121,7 @@ abstract class BaseSite
             'file' => 'database.tar']
         );
         if (!$success) {
-            Log::msg("Database backup failed!");
+            Log::error("Database backup failed!");
             $this->cleanup();
             return false;
         }
@@ -178,7 +178,7 @@ abstract class BaseSite
             $s3->copy($filename, $path);
         }
         catch (\Exception $e) {
-            Log::msg('ERROR: Failed to transfer backup file to S3.');
+            Log::error('Failed to transfer backup file to S3.');
             $this->cleanup();
             return false;
         }
@@ -218,7 +218,7 @@ abstract class BaseSite
             ), $this->cfg['tmpdir']);
         }
         catch (\Exception $e) {
-            Log::msg('ERROR: Oh no! GZIP failed.');
+            Log::error('Oh no! GZIP failed.');
             $this->cleanup();
             return false;
         }
@@ -426,7 +426,7 @@ abstract class BaseSite
             'file' => 'database.tar',
         ]);
         if (!$success) {
-            Log::msg("Database restore failed!");
+            Log::error("Database restore failed!");
             $this->cleanup();
             return false;
         }

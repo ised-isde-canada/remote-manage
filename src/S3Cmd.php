@@ -23,19 +23,19 @@ class S3Cmd
     {
         if (!getenv('AWS_ACCESS_KEY_ID')) {
             $this->error = true;
-            Log::msg('AWS_ACCESS_KEY_ID environment variable is not set.');
+            Log::error('AWS_ACCESS_KEY_ID environment variable is not set.');
         }
         if (!getenv('AWS_SECRET_ACCESS_KEY')) {
             $this->error = true;
-            Log::msg('AWS_SECRET_ACCESS_KEY environment variable is not set.');
+            Log::error('AWS_SECRET_ACCESS_KEY environment variable is not set.');
         }
         if (! $this->s3_bucket = getenv('AWS_S3_BUCKET')) {
             $this->error = true;
-            Log::msg('AWS_S3_BUCKET environment variable is not set.');
+            Log::error('AWS_S3_BUCKET environment variable is not set.');
         }
         if (! $this->s3_region = getenv('AWS_S3_REGION')) {
             $this->error = true;
-            Log::msg('AWS_S3_REGION environment variable is not set.');
+            Log::error('AWS_S3_REGION environment variable is not set.');
         }
         Log::msg("s3_bucket is $this->s3_bucket");
         Log::msg("s3_region is $this->s3_region");
@@ -60,12 +60,11 @@ class S3Cmd
             }
 
             for ($n = 0; $n <sizeof($result['Contents']); $n++) {
-                Log::msg( sprintf('%s (%0.2f MB)',
-                $result['Contents'][$n]['Key'],
-                $result['Contents'][$n]['Size'] / 1000000));
+                $files[] = ['filename' => $result['Contents'][$n]['Key'], 'size' => $result['Contents'][$n]['Size'], 'modified' => $result['Content'][$n]['LastModified']];
             }
+            Log::data($files);
         } else {
-            Log::msg('Unable to execute getList() - error flagged on S3Cmd::__construct');
+            Log::error('Unable to execute getList() - error flagged on S3Cmd::__construct');
             return false;
         }
 
@@ -82,11 +81,11 @@ class S3Cmd
             try {
                 $result = $uploader->upload();
             } catch (MultipartUploadException $e) {
-                Log::msg('S3Exception on multipart upload!');
+                Log::error('S3Exception on multipart upload!');
                 return false;
             }
         } else {
-            Log::msg('Unable to execute copy() - error flagged on S3Cmd::__construct');
+            Log::error('Unable to execute copy() - error flagged on S3Cmd::__construct');
             return false;
         }
 
@@ -104,11 +103,11 @@ class S3Cmd
                 ]);
             }
             catch(S3Exception $e) {
-                Log::msg('S3Exception on getObject!');
+                Log::error('S3Exception on getObject!');
                 return false;
             }
         } else {
-            Log::msg('Unable to execute getFile() - error flagged on S3Cmd::__construct');
+            Log::error('Unable to execute getFile() - error flagged on S3Cmd::__construct');
             return false;
         }
         return true;

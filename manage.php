@@ -3,7 +3,7 @@
 /**
  * Perform remote management for a website.
  *
- * Date: July 2020
+ * Date: Auguest 2020
  *
  * @author  Duncan Sutter
  * @author  Samantha Tripp
@@ -11,8 +11,12 @@
  * @license MIT https://opensource.org/licenses/MIT
  *
  * This script is the main entry point for remote management. Operations are:
- * - backup
- * - restore
+ * - backup: Perform backup operation.
+ * - restore: Perform restore operation.
+ * - space: Display available space for specified volumes.
+ * - s3list: Display a list of available archives.
+ * - maint: Enable or Disable maintenance mode.
+ * - delete: delete all files on persistent volumnes.
  *
  * Coding Guidelines:
  * Please follow the PHP Standards Recommendations at https://www.php-fig.org/psr/
@@ -33,15 +37,16 @@ set_time_limit(10800);
 
 // Keep session alive.
 header("Connection: Keep-alive");
+// Appropriate HTTP header for json reponse.
+header('Content-type: application/json; charset=utf-8');
 
 // Parameter option or filename.
 $filename = '';
 
 // If using command line...
-$cli = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
+Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 
-if ($cli) {
-    Log::$cli_mode = true;
+if (Log::$cli_mode) {
 
     $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 's' => 'space', 'l' => 's3list', 'm::' => 'maint::', 'd' => 'delete', 'v' => 'verbose'];
     $params = getopt(join(array_keys($options)), array_values($options));
@@ -81,24 +86,28 @@ if ($cli) {
 else { // Web form post mode.
     $operation = $_REQUEST['operation'];
     $filename = $_POST['filename'];
+
+    // Help is not supported via POST.
+    if ($operation == 'help') {
+        Log::error("Invalid operation: $operation");
+        Log::endItAll('error');
+    }
 }
 
 // Enable verbose mode if requested.
-define($DEBUGMODE, isset($param['v']) || isset($param['verbose']));
-if ($DEBUGMODE) {
-    echo 'Verbose mode is enabled.' . ($cli ? PHP_EOL : '<br>');
+define('DEBUGMODE', isset($params['v']) || isset($params['verbose']));
+if (DEBUGMODE) {
+    Log::msg('Verbose mode is enabled.' . (Log::$cli_mode ? PHP_EOL : '<br>'));
 }
 
 // Ensure filename was specified, if required.
-if($operation == 'restore' && empty('filename')) {
-    Log::msg("ERROR: Missing filename.");
-    $operation = 'error';
+if ($operation == 'restore' && empty('filename')) {
+    Log::error('Missing filename.');
+    Log::endItAll('error');
 }
 
 // Get S3 credentials and settings if required.
-
 $aws_op = in_array($operation, ['backup', 'restore', 's3list']);
-
 if ($aws_op) {
     // Load .env file which may accompany this package.
     if (($env = @file(__DIR__ . '/.env')) !== false) {
@@ -109,18 +118,16 @@ if ($aws_op) {
         }
     }
 
-    if (!$cli) {
-        // Get credentials and settings if provided via POST .
-        // These would override any settings from the .env file above.
-
-        $envVars = ['aws_access_key_id', 'aws_secret_access_key', 'aws_s3_bucket', 'aws_s3_region'];
-        foreach ($envVars as $evar) {
-            if (isset($_POST[$evar])) {
-                putenv(strtoupper($evar) . '=' . $_POST[$evar]);
-            } else if (!getenv(strtoupper($evar))) {
-                Log::msg("ERROR: AWS $evar missing.");
-                $operation = 'error';
-            }
+    // Get credentials and settings if provided via POST .
+    // These would override any settings from the .env file above.
+    $envVars = ['aws_access_key_id', 'aws_secret_access_key', 'aws_s3_bucket', 'aws_s3_region'];
+    foreach ($envVars as $evar) {
+        if (isset($_POST[$evar])) {
+            putenv(strtoupper($evar) . '=' . $_POST[$evar]);
+        } else if (!getenv(strtoupper($evar))) {
+            // Report missing credentials.
+            Log::error("ERROR: AWS $evar missing.");
+            Log::endItAll('error');
         }
     }
 }
@@ -137,8 +144,8 @@ Log::msg('Performing ' . trim($operation . ' ' . $filename) . ' operation.');
 
 // Get the application name from the environment
 if (empty($site->appEnv = getenv('APP_NAME'))) {
-    Log::msg("ERROR: APP_NAME is undefined.");
-    $operation = 'error';
+    Log::error('ERROR: APP_NAME is undefined.');
+    Log::endItAll('error');
 }
 
 // Get the requested operation and dispatch.
@@ -164,12 +171,9 @@ switch ($operation) {
     case 'space': // Disk space information.
         foreach ($site->volumes as $volume) {
             $disk = new DiskSpace($volume);
-            Log::msg("Disk information for $volume:");
-            Log::msg("Total disk space: $disk->total_space");
-            Log::msg("Free disk space: $disk->free");
-            Log::msg("Used disk space: $disk->used");
-            Log::msg('Percentage used: ', round($disk->percentage, 2) . '%');
+            $diskspace[] = ['volume' => $volume, 'totalspace' => $disk->total, 'freespace' => $disk->free, 'usedspace' => $disk->used, 'usedpercentage' => round($disk->percentage, 2) . '%'];
         }
+        Log::data($diskspace);
         break;
 
     case 'maint': // Set site in production mode.
@@ -181,7 +185,7 @@ switch ($operation) {
                 $site->maintMode(false);
                 break;
             default:
-                Log::msg('Maintenance mode is ' . ($site->inMaintMode ? 'on' : 'off'));
+                Log::data(($site->inMaintMode ? 'on' : 'off'), 'maintmode');
         }
         break;
 
@@ -189,7 +193,7 @@ switch ($operation) {
         break;
 
     default:
-        Log::msg("ERROR: The operation is either missing or invalid.");
+        Log::error('The operation is either missing or invalid.');
 }
 
 // Display end time and duration.
@@ -197,13 +201,4 @@ $endTime = microtime(true);
 Log::msg('Job started at ' . date('H:i:s', $startTime) . ' and finished at ' . date('H:i:s', $endTime) . '.');
 Log::msg('Total execution time was ' . date('H:i:s', $endTime - $startTime) . '.');
 
-// If using the CLI, we're done. The message were already printed out as they happened.
-if (!$cli) {
-    // Create the JSON response
-    $json = [];
-    $json['messages'] = Log::get();
-
-    // Exit with appropriate HTTP header and a valid JSON response.
-    header('Content-type: application/json; charset=utf-8');
-    echo json_encode($json, JSON_PRETTY_PRINT) . PHP_EOL;
-}
+Log::endItAll('success');
