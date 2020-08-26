@@ -50,10 +50,10 @@ class SysCmd
                     $status['running'] = false;
                 }
                 if (!empty($status['running'])) {
-                    // Waiting for you know who to finish work.
-                    echo '.';
-                    flush();
                     if (!Log::$cli_mode) {
+                        // Waiting for you know who to finish work.
+                        echo ' ';
+                        flush();
                         ob_flush();
                     }
                     sleep(3);
