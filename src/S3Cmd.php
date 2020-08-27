@@ -60,7 +60,7 @@ class S3Cmd
             }
 
             for ($n = 0; $n <sizeof($result['Contents']); $n++) {
-                $files = ['filename' => $result['Contents'][$n]['Key'], 'size' => $result['Contents'][$n]['Size'], 'modified' => $result['Content'][$n]['LastModified']];
+                $files = ['filename' => $result['Contents'][$n]['Key'], 'size' => $result['Contents'][$n]['Size'], 'modified' => $result['Contents'][$n]['LastModified']];
                 Log::data($files);
             }
         } else {
