@@ -126,8 +126,7 @@ class Log
     /**
      * Set some data. Do not include a newline character at the end of your message!
      *
-     * @param string $str  Text to be added to messages.
-     * @param string $type Adds to json.
+     * @param string $arr  Array to be added to data.
      *
      * @return null
      */
@@ -137,27 +136,6 @@ class Log
 
         // Add a copy of everything in self::$messages.
         self::$messages[] = $arr;
-    }
-
-    /**
-     * Output some text. Do not include a newline character at the end of your message!
-     *
-     * @param string $str  Text to be added to messages.
-     *
-     * @return null
-     */
-    public static function html($str)
-    {
-        if (self::$cli_mode) {
-            echo $str . (!self::$cli_mode ? '<br>' : PHP_EOL);
-        }
-        else {
-            echo $str . '<br>';
-            flush();
-            ob_flush();
-        }
-        // Add a copy of everything in self::$messages.
-        self::$messages[] = $str;
     }
 
     /**

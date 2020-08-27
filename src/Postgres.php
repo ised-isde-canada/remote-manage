@@ -84,7 +84,7 @@ class Postgres
             $db['pass']
         ));
         if (!$conn) {
-            Log::error("Failed to connect to database $dbname.");
+            Log::error("Failed to connect to database " . $db['name']);
             return false;
         }
 
@@ -96,9 +96,9 @@ class Postgres
         if (!$result) {
             Log::error("pg_query for dropTables() failed.");
         } else {
-            Log::msg("Dropping tables in database $dbname...");
+            Log::msg("Dropping tables in database " . $db['name']);
             if (pg_num_rows($result) == 0) {
-                Log::msg("No tables found in database $dbname.");
+                Log::msg("No tables found in database " . $db['name']);
             } else {
                 while ($row = pg_fetch_assoc($result)) {
                     $table = $row['tablename'];
