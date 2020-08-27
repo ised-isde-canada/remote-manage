@@ -171,9 +171,9 @@ switch ($operation) {
     case 'space': // Disk space information.
         foreach ($site->volumes as $volume) {
             $disk = new DiskSpace($volume);
-            $diskspace[] = ['volume' => $volume, 'totalspace' => $disk->total, 'freespace' => $disk->free, 'usedspace' => $disk->used, 'usedpercentage' => round($disk->percentage, 2) . '%'];
+            $diskspace = ['volume' => $volume, 'totalspace' => $disk->total, 'freespace' => $disk->free, 'usedspace' => $disk->used, 'usedpercentage' => round($disk->percentage, 2) . '%'];
+            Log::data($diskspace);
         }
-        Log::data($diskspace);
         break;
 
     case 'maint': // Set site in production mode.
