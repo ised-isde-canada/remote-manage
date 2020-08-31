@@ -324,6 +324,10 @@ abstract class BaseSite
             $success = $this->restoreVolumes();
         }
 
+        if ($success) {
+            $this->maintMode(false);
+        }
+
         // Display elapsed time..
         $endTime = microtime(true);
         Log::msg('Elapsed execution time is ' . date('H:i:s', $endTime - $startTime) . '.');
