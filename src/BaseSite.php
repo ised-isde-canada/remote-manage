@@ -453,7 +453,6 @@ abstract class BaseSite
             $backupFile = "$backupDir-backup.tar";
             try {
                 $cmd = sprintf('tar xf %s', $backupFile);
-                Log::msg($cmd);
                 SysCmd::exec($cmd, $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
@@ -463,7 +462,6 @@ abstract class BaseSite
 
             try {
                 $cmd = sprintf('rsync -av --omit-dir-times --no-g --no-perms %s %s', $backupDir . '/', $volume . '/');
-                Log::msg($cmd);
                 SysCmd::exec($cmd, $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {

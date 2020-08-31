@@ -26,7 +26,7 @@ class SysCmd
         }
 
         // Run gzip and tar as background tasks to avoid connection timeout.
-        if (strpos($cmd, 'gzip ') === 0 || strpos($cmd, 'tar ') === 0) {
+        if (strpos($cmd, 'gzip ') === 0 || strpos($cmd, 'tar ') === 0 || strpos($cmd, 'rsync ') === 0) {
             Log::msg('Forking the background process...');
             Log::msg($cmd);
             if (!Log::$cli_mode) {
