@@ -448,9 +448,9 @@ abstract class BaseSite
             $backupDir = basename($volume);
             $backupFile = "$backupDir-backup.tar";
             try {
-                SysCmd::exec(sprintf('tar xf %s',
-                    $backupFile
-                ), $this->cfg['tmpdir']);
+                $cmd = sprintf('tar xf %s', $backupFile);
+                Log::msg($cmd);
+                SysCmd::exec($cmd, $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
                 $this->cleanup();
@@ -458,10 +458,9 @@ abstract class BaseSite
             }
 
             try {
-                SysCmd::exec(sprintf('rsync -av %s %s',
-                    $backupDir . '/',
-                    $volume . '/'
-                ), $this->cfg['tmpdir']);
+                $cmd = sprintf('rsync -av --omit-dir-times --no-g --no-perms %s %s', $backupDir . '/', $volume . '/');
+                Log::msg($cmd);
+                SysCmd::exec($cmd, $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
                 $this->cleanup();
