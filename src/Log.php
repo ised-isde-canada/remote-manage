@@ -123,7 +123,7 @@ class Log
             // If CLI, display everything to console.
             self::$messages[] = $str;
         }
-        else {
+        else if (DEBUGMODE) {
             // If web, add to self::$messages.
             echo $str . PHP_EOL;
         }
