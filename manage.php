@@ -96,7 +96,15 @@ else { // Web form post mode.
     if (!empty($_REQUEST['verbose'])) {
         $params['verbose'] = true;
     }
+}
 
+// Enable verbose mode if requested.
+define('DEBUGMODE', isset($params['v']) || isset($params['verbose']));
+if (DEBUGMODE) {
+    Log::msg('Verbose mode is enabled.');
+}
+
+if (!Log::$cli_mode) { // Web form post mode.
     // Help is not supported via POST.
     if ($operation == 'help') {
         Log::error("Invalid operation: $operation");
@@ -109,13 +117,6 @@ else { // Web form post mode.
 
     // Help establish initial connection.
     echo PHP_EOL;
-}
-
-
-// Enable verbose mode if requested.
-define('DEBUGMODE', isset($params['v']) || isset($params['verbose']));
-if (DEBUGMODE) {
-    Log::msg('Verbose mode is enabled.');
 }
 
 // Ensure filename was specified, if required.
