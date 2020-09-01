@@ -95,6 +95,17 @@ class S3Cmd
     public function getFile($filename, $path)
     {
         if(!$this->error) {
+            // Check if file exists.
+            $result = $this->s3->doesObjectExist([
+                'Bucket' => $this->s3_bucket,
+                'Key'    => $filename,
+                ]);
+            if (!$result) {
+                Log::error('S3 file not found: ' . $filename);
+                return false;
+            }
+
+            // If file exists, download it.
             try {
                 $result = $this->s3->getObject([
                     'Bucket' => $this->s3_bucket,

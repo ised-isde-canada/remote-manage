@@ -6,6 +6,8 @@
 
 namespace RemoteManage;
 
+use Exception;
+
 abstract class BaseSite
 {
     public    $siteType = 'unknown';     // The type of site. Use all lowercase
@@ -371,7 +373,10 @@ abstract class BaseSite
     {
         $s3 = new S3Cmd();
         try {
-          $s3->getFile($this->restoreArchive, $this->cfg['tmpdir'] . '/' . $this->restoreTarFile);
+          $success = $s3->getFile($this->restoreArchive, $this->cfg['tmpdir'] . '/' . $this->restoreTarFile);
+          if (!$success) {
+              throw new Exception('Failed to retrieve specified backup archive.');
+          }
         }
         catch (\Exception $e) {
             $this->cleanup();
