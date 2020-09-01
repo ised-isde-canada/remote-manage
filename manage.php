@@ -92,12 +92,16 @@ else { // Web form post mode.
         Log::error("Invalid operation: $operation");
         Log::endItAll('error');
     }
+    else if (empty($operation)) {
+        Log::error('The operation is missing.');
+        Log::endItAll('error');
+    }
 }
 
 // Enable verbose mode if requested.
 define('DEBUGMODE', isset($params['v']) || isset($params['verbose']));
 if (DEBUGMODE) {
-    Log::msg('Verbose mode is enabled.' . (Log::$cli_mode ? PHP_EOL : '<br>'));
+    Log::msg('Verbose mode is enabled.');
 }
 
 // Ensure filename was specified, if required.
@@ -193,7 +197,8 @@ switch ($operation) {
         break;
 
     default:
-        Log::error('The operation is either missing or invalid.');
+        Log::error('The operation "' . $operation . '" invalid.');
+
 }
 
 // Display end time and duration.

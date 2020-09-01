@@ -119,8 +119,14 @@ class Log
      */
     public static function msg($str)
     {
-        // Add a copy of everything in self::$messages.
-        self::$messages[] = $str;
+        if (!self::$cli_mode) {
+            // If CLI, display everything to console.
+            self::$messages[] = $str;
+        }
+        else {
+            // If web, add to self::$messages.
+            echo $str . PHP_EOL;
+        }
     }
 
     /**
