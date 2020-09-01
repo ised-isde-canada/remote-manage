@@ -82,6 +82,9 @@ if (Log::$cli_mode) {
         fwrite(STDERR, file_get_contents(__DIR__ . '/help.txt'));
         exit(1);
     }
+
+    // Help establish initial feedback that something is happening.
+    echo '.';
 }
 else { // Web form post mode.
     $operation = $_REQUEST['operation'];
@@ -96,7 +99,11 @@ else { // Web form post mode.
         Log::error('The operation is missing.');
         Log::endItAll('error');
     }
+
+    // Help establish initial connection.
+    echo PHP_EOL;
 }
+
 
 // Enable verbose mode if requested.
 define('DEBUGMODE', isset($params['v']) || isset($params['verbose']));
