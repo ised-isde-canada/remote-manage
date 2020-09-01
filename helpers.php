@@ -27,3 +27,24 @@ function getSite()
     return $site;
 }
 
+/**
+ * Formats number and adds units to provided size.
+ *
+ * @param $bytes   float Number of bytes.
+ * @param $decimal integer Number of decimals in returned value.
+ *
+ * @return string  Number formatted with appropriate units.
+ */
+function formatBytes($bytes, $decimal = 2)
+{
+    $units = ['B', 'KB', 'MB', 'GB', 'TB', 'EB', 'ZB', 'YB'];
+
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+
+    $bytes /= pow(1024, $pow);
+
+    return round($bytes, $decimal) . ' ' . $units[$pow];
+}
+

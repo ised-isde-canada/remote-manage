@@ -15,3 +15,4 @@ Must specify only one of the following parameters first:
 --space | -s              List disk space information.
 May be combined with others:
 --verbose | -v            Display additional information during execution.
+--format=bytes/human      Format file sizes. Default is in bytes (CLI in human)

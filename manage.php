@@ -40,15 +40,16 @@ header("Connection: Keep-alive");
 // Appropriate HTTP header for json reponse.
 header('Content-type: application/json; charset=utf-8');
 
-// Parameter option or filename.
-$filename = '';
 
 // If using command line...
 Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 
 if (Log::$cli_mode) {
 
-    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:', 's' => 'space', 'l' => 's3list', 'm::' => 'maint::', 'd' => 'delete', 'v' => 'verbose'];
+    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:',
+                's' => 'space', 'l' => 's3list', 'm::' => 'maint::',
+                'd' => 'delete', 'v' => 'verbose', 'f' => 'format'
+            ];
     $params = getopt(join(array_keys($options)), array_values($options));
 
     // If invalid or missing parameter, display help.
@@ -62,9 +63,7 @@ if (Log::$cli_mode) {
     $operation = key($params);
 
     // Get a filename or other parameter option, if one was passed.
-    if (!empty($params[$operation])) {
-        $filename = $params[$operation];
-    }
+    $filename = !empty($params[$operation]) ? $params[$operation] : '';
 
     // Convert to long form of option if short form was specified.
     for ($cnt = 0; $cnt < 3; $cnt++) {
@@ -88,7 +87,15 @@ if (Log::$cli_mode) {
 }
 else { // Web form post mode.
     $operation = $_REQUEST['operation'];
-    $filename = $_POST['filename'];
+
+    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
+    if (!empty($_POST['format'])) {
+        $param['format'] = $_POST['format'];
+    }
+
+    if (!empty($_POST['verbose'])) {
+        $param['verbose'] = true;
+    }
 
     // Help is not supported via POST.
     if ($operation == 'help') {
@@ -182,18 +189,19 @@ switch ($operation) {
     case 'space': // Disk space information.
         $success = true;
         foreach ($site->volumes as $volume) {
-            $disk = new DiskSpace($volume);
+            $format = (Log::$cli_mode || $format == 'human' ? 'human' : 'bytes');
+            $disk = new DiskSpace($volume, $format);
             $success = $disk->total !== false;
             if ($success === false) {
                 break;
             }
             $diskspace = [
-                    'volume' => $volume,
-                    'totalspace' => $disk->formatBytes($disk->total),
-                    'freespace' => $disk->formatBytes($disk->free),
-                    'usedspace' => $disk->formatBytes($disk->used),
-                    'usedpercentage' => round($disk->percentage, 2) . '%'
-                ];
+                'volume' => $volume,
+                'totalspace' => $disk->total,
+                'freespace' => $disk->free,
+                'usedspace' => $disk->used,
+                'usedpercentage' => round($disk->percentage, 2) . '%'
+            ];
             Log::data($diskspace);
         }
         break;
