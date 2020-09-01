@@ -37,16 +37,15 @@ class DiskSpace
         }
         $this->total = disk_total_space($path);
         if ($this->total !== false) {
-            if ($format == 'bytes') {
-                $this->free = disk_free_space($path);
-                $this->used = $this->total - $this->free;
-            }
-            else { // Human readable format.
+            $this->free = disk_free_space($path);
+            $this->used = $this->total - $this->free;
+            $this->percentage = (($this->used / $this->total)  * 100);
+            if ($format != 'bytes') { // Conver to Human readable format.
                 $this->total = formatBytes($this->total);
                 $this->free = formatBytes(disk_free_space($path));
-                $this->used = formatBytes( $this->total - $this->free);
+                $this->used = formatBytes($this->total - $this->free);
+                $this->percentage = $this->percentage . '%';
             }
-            $this->percentage = (($this->used / $this->total)  * 100);
         }
     }
 

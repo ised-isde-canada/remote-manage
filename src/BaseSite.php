@@ -135,6 +135,7 @@ abstract class BaseSite
     }
 
     /**
+     * Backup volumes
      *
      * @return boolean
      */
@@ -235,6 +236,7 @@ abstract class BaseSite
     /**
      * Perform a cleanup of any temp files created.
      * Take the site out of maintenance mode.
+     *
      * @return boolean
      */
     public function cleanup()
@@ -254,6 +256,7 @@ abstract class BaseSite
      * Static function to detect what type of site this is.
      * Note: Each site type must override this method.
      * This would be an abstract function if PHP would allow it in combination with static.
+     *
      * @return string 'unknown'.
      */
     public static function detect()
@@ -283,6 +286,9 @@ abstract class BaseSite
 
     /**
      * Restore a site, using parameters provided in the POST and local configuration.
+     *
+     * @param integer $startTime  Start time in epoch time.
+     * @param string  $backupFile Name of the backup file we are restoring.
      *
      * @return boolean
      */

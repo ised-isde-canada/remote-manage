@@ -11,6 +11,7 @@
  * @license MIT https://opensource.org/licenses/MIT
  *
  * This script is the main entry point for remote management. Operations are:
+ * - help: Displays help in CLI mode.
  * - backup: Perform backup operation.
  * - restore: Perform restore operation.
  * - space: Display available space for specified volumes.
@@ -111,6 +112,7 @@ if (!Log::$cli_mode) { // Web form post mode.
         Log::endItAll('error');
     }
     else if (empty($operation)) {
+        // Someone forgot a little detail!
         Log::error('The operation is missing.');
         Log::endItAll('error');
     }
@@ -206,7 +208,7 @@ switch ($operation) {
                 'totalspace' => $disk->total,
                 'freespace' => $disk->free,
                 'usedspace' => $disk->used,
-                'usedpercentage' => round($disk->percentage, 2) . '%'
+                'usedpercentage' => round($disk->percentage, 2)
             ];
             Log::data($diskspace);
         }
