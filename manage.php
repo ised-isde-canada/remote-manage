@@ -48,7 +48,7 @@ if (Log::$cli_mode) {
     // Note: Delete does not have a short version.
     $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:',
                 's' => 'space', 'l' => 's3list', 'm::' => 'maint::',
-                chr(127) => 'delete', 'v' => 'verbose', 'f' => 'format'
+                chr(127) => 'delete', 'v' => 'verbose', 'f::' => 'format::'
             ];
     $params = getopt(join(array_keys($options)), array_values($options));
 
@@ -88,13 +88,13 @@ if (Log::$cli_mode) {
 else { // Web form post mode.
     $operation = $_REQUEST['operation'];
 
-    $filename = isset($_POST['filename']) ? $_POST['filename'] : '';
-    if (!empty($_POST['format'])) {
-        $param['format'] = $_POST['format'];
+    $filename = isset($_REQUEST['filename']) ? $_REQUEST['filename'] : '';
+    if (!empty($_REQUEST['format'])) {
+        $params['format'] = $_REQUEST['format'];
     }
 
-    if (!empty($_POST['verbose'])) {
-        $param['verbose'] = true;
+    if (!empty($_REQUEST['verbose'])) {
+        $params['verbose'] = true;
     }
 
     // Help is not supported via POST.
@@ -189,8 +189,13 @@ switch ($operation) {
     case 'space': // Disk space information.
         $success = true;
         foreach ($site->volumes as $volume) {
-            $format = (Log::$cli_mode || $format == 'human' ? 'human' : 'bytes');
+            // CLI = human. Web = bytes.
+            $format = (Log::$cli_mode ? 'human' : 'bytes');
+            // But may be overwridden by format parameter.
+            $format = (isset($params['format']) ? $params['format'] : $format);
+            // Get disk information.
             $disk = new DiskSpace($volume, $format);
+            // If invalid volume specified, disk total space will be FALSE.
             $success = $disk->total !== false;
             if ($success === false) {
                 break;
