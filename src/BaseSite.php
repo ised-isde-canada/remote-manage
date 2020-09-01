@@ -373,10 +373,10 @@ abstract class BaseSite
     {
         $s3 = new S3Cmd();
         try {
-          $success = $s3->getFile($this->restoreArchive, $this->cfg['tmpdir'] . '/' . $this->restoreTarFile);
-          if (!$success) {
-              throw new Exception('Failed to retrieve specified backup archive.');
-          }
+            $success = $s3->getFile($this->restoreArchive, $this->cfg['tmpdir'] . '/' . $this->restoreTarFile);
+            if (!$success) {
+                throw new Exception('Failed to retrieve backup archive.');
+            }
         }
         catch (\Exception $e) {
             $this->cleanup();

@@ -63,7 +63,7 @@ class Site extends BaseSite
     /**
      * Delete files within persistent volumes, without deleting
      * the directory itself.
-     * 
+     *
      * @return boolean Successful (true), failed (false).
      */
     public function deleteFiles()
@@ -74,7 +74,7 @@ class Site extends BaseSite
                 SysCmd::exec(sprintf('rm -rf %s',
                     $volume
                 ));
-            } 
+            }
             catch (\Exception $e) {
                 return false;
             }
@@ -101,7 +101,7 @@ class Site extends BaseSite
             if (!$this->inMaintMode) {
                 Log::msg("Enter Drupal maintenance mode");
                 // Enable maintenance mode.
-                SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 1 --input-format=integer', $this->cfg['homedir']);
+                $success = SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 1 --input-format=integer', $this->cfg['homedir']);
                 // Rebuild cache (no need to backup temp files).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
                 $this->inMaintMode = true;
@@ -113,9 +113,10 @@ class Site extends BaseSite
                 // Rebuild cache (in case we are doing a restore).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
                 // Disable maintenance mode.
-                SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 0 --input-format=integer', $this->cfg['homedir']);
+                $success = SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 0 --input-format=integer', $this->cfg['homedir']);
                 $this->inMaintMode = false;
             }
         }
+        return ($success == 0);
     }
 }

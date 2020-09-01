@@ -155,27 +155,38 @@ if (empty($site->appEnv = getenv('APP_NAME'))) {
 // Get the requested operation and dispatch.
 switch ($operation) {
     case 'backup':
-        $site->backup($startTime);
+        $success = $site->backup($startTime);
         break;
 
     case 'restore':
-        $site->restore($startTime, $filename);
+        $success = $site->restore($startTime, $filename);
         break;
 
     case 'delete':
-        $site->dropTables();
-        $site->deleteFiles();
+        $site->dropTables(); // No status check because it might have already been empty.
+        $success = $site->deleteFiles();
         break;
 
     case 's3list':
         $s3 = new S3Cmd();
-        $s3->getList();
+        $success = $s3->getList();
         break;
 
     case 'space': // Disk space information.
+        $success = true;
         foreach ($site->volumes as $volume) {
             $disk = new DiskSpace($volume);
-            $diskspace = ['volume' => $volume, 'totalspace' => $disk->total, 'freespace' => $disk->free, 'usedspace' => $disk->used, 'usedpercentage' => round($disk->percentage, 2) . '%'];
+            $success = $disk->total !== false;
+            if ($success === false) {
+                break;
+            }
+            $diskspace = [
+                    'volume' => $volume,
+                    'totalspace' => $disk->formatBytes($disk->total),
+                    'freespace' => $disk->formatBytes($disk->free),
+                    'usedspace' => $disk->formatBytes($disk->used),
+                    'usedpercentage' => round($disk->percentage, 2) . '%'
+                ];
             Log::data($diskspace);
         }
         break;
@@ -183,21 +194,24 @@ switch ($operation) {
     case 'maint': // Set site in production mode.
         switch(strtolower($filename)) { // This is actually mode in this case.
             case 'on':
-                $site->maintMode(true);
+                $success = $site->maintMode(true);
                 break;
             case 'off':
-                $site->maintMode(false);
+                $succes = $site->maintMode(false);
                 break;
             default:
-                Log::data(($site->inMaintMode ? 'on' : 'off'), 'maintmode');
+                Log::data(($site->inMaintMode ? 'on' : 'off'));
+                $success = true;
         }
         break;
 
     case 'error': // Error, just exit.
+        $success = false;
         break;
 
     default:
         Log::error('The operation "' . $operation . '" invalid.');
+        $success = false;
 
 }
 
@@ -206,4 +220,4 @@ $endTime = microtime(true);
 Log::msg('Job started at ' . date('H:i:s', $startTime) . ' and finished at ' . date('H:i:s', $endTime) . '.');
 Log::msg('Total execution time was ' . date('H:i:s', $endTime - $startTime) . '.');
 
-Log::endItAll('success');
+Log::endItAll($success ? 'success' : 'error');

@@ -35,9 +35,11 @@ class DiskSpace
             $path = dirname(__FILE__);
         }
         $this->total = disk_total_space($path);
-        $this->free = disk_free_space($path);
-        $this->used = $this->total - $this->free;
-        $this->percentage = (($this->used / $this->total)  * 100);
+        if ($this->total !== false) {
+            $this->free = disk_free_space($path);
+            $this->used = $this->total - $this->free;
+            $this->percentage = (($this->used / $this->total)  * 100);
+        }
     }
 
     /**

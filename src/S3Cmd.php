@@ -96,11 +96,7 @@ class S3Cmd
     {
         if(!$this->error) {
             // Check if file exists.
-            $result = $this->s3->doesObjectExist([
-                'Bucket' => $this->s3_bucket,
-                'Key'    => $filename,
-                ]);
-            if (!$result) {
+            if (!$this->s3->doesObjectExist($this->s3_bucket, $filename)) {
                 Log::error('S3 file not found: ' . $filename);
                 return false;
             }
@@ -114,7 +110,7 @@ class S3Cmd
                 ]);
             }
             catch(S3Exception $e) {
-                Log::error('S3Exception on getObject!');
+                Log::error('S3 failed to retrieve file.');
                 return false;
             }
         } else {

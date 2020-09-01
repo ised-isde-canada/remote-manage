@@ -59,7 +59,7 @@ class Site extends BaseSite
 
     /**
      * Delete files in moodledata without deleting directory itself.
-     * @return boolean If successful (true), or failed (false).
+     * @return boolean If successful (true - i.e. only "." and ".."), or failed (false).
      */
     public function deleteFiles()
     {
@@ -78,7 +78,7 @@ class Site extends BaseSite
             if (!$this->inMaintMode) {
                 Log::msg("Entering maintenance mode");
                 // Enable maintenance mode.
-                SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
+                $success = SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
                 // Purge all cache (no need to backup temp files).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 $this->inMaintMode = true;
@@ -90,9 +90,10 @@ class Site extends BaseSite
                 // Purge all cache (in case we are doing a restore).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 // Disable maintenance mode.
-                SysCmd::exec('php -f admin/cli/maintenance.php -- --disable', $this->cfg['homedir']);
+                $success = SysCmd::exec('php -f admin/cli/maintenance.php -- --disable', $this->cfg['homedir']);
                 $this->inMaintMode = false;
             }
         }
+        return ($success == 0);
     }
 }
