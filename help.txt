@@ -6,7 +6,7 @@ Example: php manage.php --backup
 
 Must specify only one of the following parameters first:
 --backup | -b             Backup this site.
---delete | -d             Delete database and persistent volumne files.
+--delete                  Delete database and persistent volumne files.
 --help | -h               Display this information.
 --maint | -m = [on/off]   Set site in maintenance (on), prod (off) mode.
                           If neither is spacified, will return current state.

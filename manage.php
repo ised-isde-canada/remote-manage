@@ -45,10 +45,10 @@ header('Content-type: application/json; charset=utf-8');
 Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 
 if (Log::$cli_mode) {
-
+    // Note: Delete does not have a short version.
     $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:',
                 's' => 'space', 'l' => 's3list', 'm::' => 'maint::',
-                'd' => 'delete', 'v' => 'verbose', 'f' => 'format'
+                chr(127) => 'delete', 'v' => 'verbose', 'f' => 'format'
             ];
     $params = getopt(join(array_keys($options)), array_values($options));
 
