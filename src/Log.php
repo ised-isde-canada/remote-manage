@@ -157,23 +157,23 @@ class Log
     {
         switch($op) {
             case 'start':
-                $this->startTime = microtime(true);
-                $this->msg('Starting at ' . date('H:i:s', $this->startTime) . '...');
+                self::$startTime = microtime(true);
+                self::msg('Starting at ' . date('H:i:s', self::$startTime) . '...');
                 break;
             case 'stop':
-                $this->endTime = microtime(true);
-                $this->msg('Job started at ' . date('H:i:s', $this->startTime) . ' and finished at ' . date('H:i:s', $this->endTime) . '.');
-                $this->msg('Total execution time was ' . date('H:i:s', $this->endTime - $this->startTime) . '.');
-                $this->startTime = null;
+                self::$endTime = microtime(true);
+                self::msg('Job started at ' . date('H:i:s', self::$startTime) . ' and finished at ' . date('H:i:s', self::$endTime) . '.');
+                self::msg('Total execution time was ' . date('H:i:s', self::$endTime - self::$startTime) . '.');
+                self::$startTime = null;
                 break;
             case 'time':
-                if (isset($this->startTime)) {
+                if (isset(self::$startTime)) {
                     $currentTime = microtime(true);
-                    $this->msg('Elapsed execution time is ' . date('H:i:s', $currentTime - $this->startTime) . '.');
+                    self::msg('Elapsed execution time is ' . date('H:i:s', $currentTime - self::$startTime) . '.');
                 }
                 break;
             default:
-                $this->msg('Invalid stopWatch operation.');
+                self::msg('Invalid stopWatch operation.');
         }
     }
 
