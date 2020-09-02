@@ -42,7 +42,7 @@ abstract class BaseSite
      *
      * @return boolean Success (true), Failure (false).
      */
-    public function backup($startTime)
+    public function backup()
     {
         Log::msg("Backup process is running...");
 
@@ -83,9 +83,8 @@ abstract class BaseSite
         // No need to keep the site in maintenance mode from this point on.
         $this->maintMode(false);
 
-        // Display elapsed time..
-        $endTime = microtime(true);
-        Log::msg('Elapsed execution time is ' . date('H:i:s', $endTime - $startTime) . '.');
+        // Display elapsed time.
+        Log::stopWatch('time');
 
         // Create GZIP file.
         if ($success) {
@@ -292,7 +291,7 @@ abstract class BaseSite
      *
      * @return boolean
      */
-    public function restore($startTime, $backupFile)
+    public function restore($backupFile)
     {
         Log::msg("Restore process is running...");
         $this->restoreArchive = $backupFile;
@@ -336,9 +335,8 @@ abstract class BaseSite
             $this->maintMode(false);
         }
 
-        // Display elapsed time..
-        $endTime = microtime(true);
-        Log::msg('Elapsed execution time is ' . date('H:i:s', $endTime - $startTime) . '.');
+        // Display elapsed time.
+        Log::stopWatch('time');
 
         $this->cleanup();
 
