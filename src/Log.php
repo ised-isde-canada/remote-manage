@@ -18,6 +18,8 @@ class Log
     private static $error = [];
     private static $data = [];
     private static $messages = [];
+    private static $startTime = null;
+    private static $endTime = null;
 
     /**
      * Return an array of all messages.
@@ -142,6 +144,30 @@ class Log
 
         // Add a copy of everything in self::$messages.
         self::$messages[] = $arr;
+    }
+
+    /**
+     * Execution time management.
+     */
+    public static function stopWatch($op = 'start') 
+    {
+        switch($op) {
+            case 'start':
+                $this->startTime = microtime(true);
+                $this->msg('Starting at ' . date('H:i:s', $this->startTime) . '...');
+                break;
+            case 'stop':
+                $this->endTime = microtime(true);
+                $this->msg('Job started at ' . date('H:i:s', $this->startTime) . ' and finished at ' . date('H:i:s', $this->endTime) . '.');
+                $this->msg('Total execution time was ' . date('H:i:s', $this->endTime - $this->startTime) . '.');
+                break;
+            case 'time':
+                $currentTime = microtime(true);
+                $this->msg('Elapsed execution time is ' . date('H:i:s', $currentTime - $startTime) . '.');
+                break;
+            default:
+                $this->msg('Invalid stopWatch operation.');
+        }
     }
 
     /**

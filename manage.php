@@ -35,12 +35,10 @@ use RemoteManage\DiskSpace;
 
 // Set timeout to 3 hours.
 set_time_limit(10800);
-
 // Keep session alive.
 header("Connection: Keep-alive");
 // Appropriate HTTP header for json reponse.
 header('Content-type: application/json; charset=utf-8');
-
 
 // If using command line...
 Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
@@ -153,9 +151,8 @@ if ($aws_op) {
     }
 }
 
-// Display start time.
-$startTime = microtime(true);
-Log::msg('Starting at ' . date('H:i:s', $startTime) . '...');
+// Start timer.
+Log::stopWatch();
 
 // Get a site object. This will determine the type of site.
 $site = getSite();
@@ -172,11 +169,11 @@ if (empty($site->appEnv = getenv('APP_NAME'))) {
 // Get the requested operation and dispatch.
 switch ($operation) {
     case 'backup':
-        $success = $site->backup($startTime);
+        $success = $site->backup();
         break;
 
     case 'restore':
-        $success = $site->restore($startTime, $filename);
+        $success = $site->restore($filename);
         break;
 
     case 'delete':
@@ -220,7 +217,7 @@ switch ($operation) {
                 $success = $site->maintMode(true);
                 break;
             case 'off':
-                $succes = $site->maintMode(false);
+                $success = $site->maintMode(false);
                 break;
             default:
                 Log::data(($site->inMaintMode ? 'on' : 'off'));
@@ -238,9 +235,8 @@ switch ($operation) {
 
 }
 
-// Display end time and duration.
-$endTime = microtime(true);
-Log::msg('Job started at ' . date('H:i:s', $startTime) . ' and finished at ' . date('H:i:s', $endTime) . '.');
-Log::msg('Total execution time was ' . date('H:i:s', $endTime - $startTime) . '.');
+// Stop timer and record elapsed time.
+Log::stopWatch('stop');
 
+// Complete execution.
 Log::endItAll($success ? 'success' : 'error');
