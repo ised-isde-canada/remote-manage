@@ -164,10 +164,13 @@ class Log
                 $this->endTime = microtime(true);
                 $this->msg('Job started at ' . date('H:i:s', $this->startTime) . ' and finished at ' . date('H:i:s', $this->endTime) . '.');
                 $this->msg('Total execution time was ' . date('H:i:s', $this->endTime - $this->startTime) . '.');
+                $this->startTime = null;
                 break;
             case 'time':
-                $currentTime = microtime(true);
-                $this->msg('Elapsed execution time is ' . date('H:i:s', $currentTime - $this->startTime) . '.');
+                if (isset($this->startTime)) {
+                    $currentTime = microtime(true);
+                    $this->msg('Elapsed execution time is ' . date('H:i:s', $currentTime - $this->startTime) . '.');
+                }
                 break;
             default:
                 $this->msg('Invalid stopWatch operation.');
