@@ -35,6 +35,8 @@ use RemoteManage\DiskSpace;
 
 // Set timeout to 3 hours.
 set_time_limit(10800);
+// Use local timezone
+date_default_timezone_set("America/Toronto");
 // Keep session alive.
 header("Connection: Keep-alive");
 // Appropriate HTTP header for json reponse.
