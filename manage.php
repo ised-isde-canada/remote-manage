@@ -47,7 +47,7 @@ if (Log::$cli_mode) {
     // Note: Delete does not have a short version.
     $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:',
                 's' => 'space', 'l' => 's3list', 'm::' => 'maint::',
-                chr(127) => 'delete', 'v' => 'verbose', 'f::' => 'format::'
+                '' => 'delete', 'v' => 'verbose', 'f::' => 'format::'
             ];
     $params = getopt(join(array_keys($options)), array_values($options));
 
