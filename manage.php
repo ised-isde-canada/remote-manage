@@ -24,7 +24,7 @@
  */
 
 // Use the composer PSR-4 autoloader.
-$loader = require 'vendor/autoload.php';
+$loader = require '/opt/app-root/src/vendor/autoload.php';
 $loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
 
 require_once "helpers.php";
