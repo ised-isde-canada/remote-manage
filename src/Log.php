@@ -163,13 +163,14 @@ class Log
             case 'stop':
                 self::$endTime = microtime(true);
                 self::msg('Job started at ' . date('H:i:s', self::$startTime) . ' and finished at ' . date('H:i:s', self::$endTime) . '.');
-                self::msg('Total execution time was ' . gmdate('H:i:s', self::$endTime - self::$startTime) . '.');
+                $seconds = self::$endTime - self::$startTime;
+                self::msg('Total execution time was ' . floor($seconds / 3600) . gmdate(':i:s', ($seconds % 3600)) . '.');
                 self::$startTime = null;
                 break;
             case 'time':
                 if (isset(self::$startTime)) {
-                    $currentTime = microtime(true);
-                    self::msg('Elapsed execution time is ' . gmdate('H:i:s', $currentTime - self::$startTime) . '.');
+                    $seconds = microtime(true) - self::$startTime;
+                    self::msg('Elapsed execution time is ' . floor($seconds / 3600) . gmdate(':i:s', ($seconds % 3600)) . '.');
                 }
                 break;
             default:
