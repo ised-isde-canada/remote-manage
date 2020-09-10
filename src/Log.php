@@ -148,12 +148,12 @@ class Log
 
     /**
      * Execution time management.
-     * 
+     *
      * @param string $op  Stopwatch operation to execute.
-     * 
+     *
      * @return null
      */
-    public static function stopWatch($op = 'start') 
+    public static function stopWatch($op = 'start')
     {
         switch($op) {
             case 'start':
@@ -163,13 +163,13 @@ class Log
             case 'stop':
                 self::$endTime = microtime(true);
                 self::msg('Job started at ' . date('H:i:s', self::$startTime) . ' and finished at ' . date('H:i:s', self::$endTime) . '.');
-                self::msg('Total execution time was ' . date('H:i:s', self::$endTime - self::$startTime) . '.');
+                self::msg('Total execution time was ' . gmdate('H:i:s', self::$endTime - self::$startTime) . '.');
                 self::$startTime = null;
                 break;
             case 'time':
                 if (isset(self::$startTime)) {
                     $currentTime = microtime(true);
-                    self::msg('Elapsed execution time is ' . date('H:i:s', $currentTime - self::$startTime) . '.');
+                    self::msg('Elapsed execution time is ' . gmdate('H:i:s', $currentTime - self::$startTime) . '.');
                 }
                 break;
             default:
