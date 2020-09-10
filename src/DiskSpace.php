@@ -41,9 +41,9 @@ class DiskSpace
             $this->used = $this->total - $this->free;
             $this->percentage = (($this->used / $this->total)  * 100);
             if ($format != 'bytes') { // Conver to Human readable format.
+                $this->used = formatBytes($this->total - $this->free);
                 $this->total = formatBytes($this->total);
                 $this->free = formatBytes(disk_free_space($path));
-                $this->used = formatBytes($this->total - $this->free);
                 $this->percentage = $this->percentage . '%';
             }
         }
