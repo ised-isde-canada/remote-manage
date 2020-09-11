@@ -74,6 +74,8 @@ class Site extends BaseSite
      */
     public function maintMode($maint = true)
     {
+        $success = -1;
+
         if ($maint) {
             if (!$this->inMaintMode) {
                 Log::msg("Entering maintenance mode");
