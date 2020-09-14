@@ -56,9 +56,9 @@ abstract class BaseSite
 
         // Set the name of the backup tar file.
         $this->backupTarFile = sprintf(
-            '%s-%s-%s.tar',
+            '%s@%s@%s.tar',
             $this->appEnv,
-            date('Y-m-d_H-i'),
+            date('Y-m-d@H-i'),
             $this->backupType
         );
 
