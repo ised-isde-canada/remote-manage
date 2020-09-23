@@ -52,7 +52,11 @@ if (Log::$cli_mode) {
                 's' => 'space', 'l' => 's3list', 'm::' => 'maint::',
                 '' => 'delete', 'v' => 'verbose', 'f::' => 'format::'
             ];
-    $params = getopt(join(array_keys($options)), array_values($options));
+
+    // Long options that don't have a corresponding short option
+    $longopts = ['background'];
+
+    $params = getopt(join(array_keys($options)), array_merge(array_values($options), $longopts));
 
     // If invalid or missing parameter, display help.
     if (empty($params)) {
