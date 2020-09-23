@@ -47,43 +47,43 @@ header('Content-type: application/json; charset=utf-8');
 Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
 
 if (Log::$cli_mode) {
-    // Note: Delete does not have a short version.
-    $options = ['h' => 'help', 'b' => 'backup', 'r:' => 'restore:',
-                's' => 'space', 'l' => 's3list', 'm::' => 'maint::',
-                '' => 'delete', 'v' => 'verbose', 'f::' => 'format::'
-            ];
+    // Get command line options.
+    $params = getopt('r:m::f::hbslv', array('restore:', 'maint::', 'format::', 'help', 'backup', 'space', 's3list', 'verbose'));
 
-    // Long options that don't have a corresponding short option
-    $longopts = ['background'];
+    // Help overrides anything else on the command line.
+    $operation = (empty($operation) && (isset($param['help'])  || isset($param['h']))) ? 'help' : $operation;
 
-    $params = getopt(join(array_keys($options)), array_merge(array_values($options), $longopts));
-
-    // If invalid or missing parameter, display help.
-    if (empty($params)) {
-        $params = ['help' => false];
+    // Process 'restore' parameters.
+    if (empty($operation) && (!empty($param['restore']) || !empty($param['r']))) {
+        $operation = 'restore';
+        $option['filename'] = !empty($params['restore']) ? $params['restore'] : $params['r'];
     }
 
-    // Only process the first passed parameter.
-    // We don't support multiple parameters at this time.
-    reset($params);
-    $operation = key($params);
+    // Process 'maint' parameters.
+    if (empty($operation) && (!empty($param['maint']) || !empty($param['m']))) {
+        $operation = 'maint';
+        $option['status'] = !empty($params['maint']) ? $params['maint'] : $params['m'];
+    }
 
-    // Get a filename or other parameter option, if one was passed.
-    $filename = !empty($params[$operation]) ? $params[$operation] : '';
+    // The following operations do not have any parameters.
+    $operation = (empty($operation) && (!empty($param['space'])  || !empty($param['s']))) ? 'space'  : $operation;
+    $operation = (empty($operation) && (!empty($param['s3list']) || !empty($param['l']))) ? 's3list' : $operation;
+    $operation = (empty($operation) && !empty($param['delete'])) ? 'backup' : $operation;
+    $operation = (empty($operation) && (!empty($param['pmlist']) || !empty($param['p']))) ? 'pmlist' : $operation;
 
-    // Convert to long form of option if short form was specified.
-    for ($cnt = 0; $cnt < 3; $cnt++) {
-        // Handle variations if there is one or more colons.
-        $op = $operation . str_repeat(':', $cnt);
-        if (isset($options[$op])) {
-            // Be sure to save long form without colons.
-            $operation = rtrim($options[$op], ':');
-            break;
+    // Process other options.
+    $option['background'] = !empty($param['background']);
+    $option['verbose'] = !empty($param['verbose']) || !empty($param['v']);
+    $option['format'] = !empty($param['format']) || !empty($param['f']);
+    if ($option['format']) {
+        $option['format'] = !empty($params['format']) ? $params['format'] : $params['f'];
+        if (in_array($option['format'], ['bytes', 'off'])) {
+            $operation = false;
         }
     }
 
-    // Display help.
-    if ($operation == 'help') {
+    if (empty($operation) || $operation == 'help') {
+        // Display help and exit.
         fwrite(STDERR, file_get_contents(__DIR__ . '/help.txt'));
         exit(1);
     }
@@ -93,19 +93,13 @@ if (Log::$cli_mode) {
 }
 else { // Web form post mode.
     $operation = $_REQUEST['operation'];
-
-    $filename = isset($_REQUEST['filename']) ? $_REQUEST['filename'] : '';
-    if (!empty($_REQUEST['format'])) {
-        $params['format'] = $_REQUEST['format'];
-    }
-
-    if (!empty($_REQUEST['verbose'])) {
-        $params['verbose'] = true;
-    }
+    $option['filename'] = isset($_REQUEST['filename']) ? $_REQUEST['filename'] : '';
+    $option['format'] = !empty($_REQUEST['format']) ? $_REQUEST['format'] : '';
+    $option['verbose'] = !empty($_REQUEST['verbose']);
 }
 
 // Enable verbose mode if requested.
-define('DEBUGMODE', isset($params['v']) || isset($params['verbose']));
+define('DEBUGMODE', !empty($option['verbose']));
 if (DEBUGMODE) {
     Log::msg('Verbose mode is enabled.');
 }
@@ -127,7 +121,7 @@ if (!Log::$cli_mode) { // Web form post mode.
 }
 
 // Ensure filename was specified, if required.
-if ($operation == 'restore' && empty('filename')) {
+if ($operation == 'restore' && empty($option['filename'])) {
     Log::error('Missing filename.');
     Log::endItAll('error');
 }
@@ -165,7 +159,7 @@ Log::stopWatch();
 $site = getSite();
 
 Log::msg('Site type is: ' . $site->siteType);
-Log::msg('Performing ' . trim($operation . ' ' . $filename) . ' operation.');
+Log::msg('Performing ' . trim($operation . ' ' . $option['filename']) . ' operation.');
 
 // Get the application name from the environment
 if (empty($site->appEnv = getenv('APP_NAME'))) {
@@ -180,7 +174,7 @@ switch ($operation) {
         break;
 
     case 'restore':
-        $success = $site->restore($filename);
+        $success = $site->restore($option['filename']);
         break;
 
     case 'delete':
@@ -201,10 +195,10 @@ switch ($operation) {
     case 'space': // Disk space information.
         $success = true;
         foreach ($site->volumes as $volume) {
-            // CLI = human. Web = bytes.
+            // Default format: CLI = human. Web = bytes.
             $format = (Log::$cli_mode ? 'human' : 'bytes');
             // But may be overwridden by format parameter.
-            $format = (isset($params['format']) ? $params['format'] : $format);
+            $format = (!empty($option['format']) ? $params['format'] : $format);
             // Get disk information.
             $disk = new DiskSpace($volume, $format);
             // If invalid volume specified, disk total space will be FALSE.
@@ -224,7 +218,7 @@ switch ($operation) {
         break;
 
     case 'maint': // Set site in production mode.
-        switch(strtolower($filename)) { // This is actually mode in this case.
+        switch(strtolower($option['status'])) { // This is actually mode in this case.
             case 'on':
                 $success = $site->maintMode(true);
                 break;
