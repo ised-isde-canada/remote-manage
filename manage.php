@@ -32,6 +32,7 @@ require_once "helpers.php";
 use RemoteManage\Log;
 use RemoteManage\S3Cmd;
 use RemoteManage\DiskSpace;
+use RemoteManage\Drush;
 
 // Set timeout to 3 hours.
 set_time_limit(10800);
@@ -181,6 +182,11 @@ switch ($operation) {
     case 'delete':
         $site->dropTables(); // No status check because it might have already been empty.
         $success = $site->deleteFiles();
+        break;
+
+    case 'pmlist':
+        $drush = new Drush();
+        $success = $drush->pmList();
         break;
 
     case 's3list':
