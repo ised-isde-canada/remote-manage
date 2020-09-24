@@ -60,6 +60,9 @@ if (Log::$cli_mode) {
         $operation = 'restore';
         $option['filename'] = isset($params['restore']) ? $params['restore'] : $params['r'];
     }
+    else {
+        $option['filename'] = '';
+    }
 
     if (empty($operation) && (isset($params['maint']) || isset($params['m']))) {
         // Process 'maint' parameters. Can be blank, on or off.
@@ -184,7 +187,7 @@ Log::stopWatch();
 $site = getSite();
 
 Log::msg('Site type is: ' . $site->siteType);
-Log::msg('Performing ' . trim($operation . ' ' . $option['background'] . $option['filename'] . $option['format']) . ' operation.');
+Log::msg('Performing ' . trim($operation . ' ' . $option['filename'] . $option['format']) . ' operation.');
 
 // Get the application name from the environment
 if (empty($site->appEnv = getenv('APP_NAME'))) {
