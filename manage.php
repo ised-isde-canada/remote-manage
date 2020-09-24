@@ -44,7 +44,7 @@ header("Connection: Keep-alive");
 header('Content-type: application/json; charset=utf-8');
 
 // Long form of valid parameters. Will be used to validate CLI and Post methods.
-$parameters = ['restore:', 'maint::', 'format::', 'help', 'backup', 'space', 's3list', 'verbose'];
+$parameters = ['restore:', 'maint::', 'format::', 'help', 'backup', 'delete', 'space', 's3list', 'verbose'];
 
 // If using command line...
 Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
@@ -74,19 +74,20 @@ if (Log::$cli_mode) {
     }
 
     // The following operations do not have any parameters.
+    $operation = (empty($operation) && isset($params['delete'])) ? 'delete' : $operation;
     $operation = (empty($operation) && (isset($params['space'])  || isset($params['s']))) ? 'space'  : $operation;
     $operation = (empty($operation) && (isset($params['s3list']) || isset($params['l']))) ? 's3list' : $operation;
-    $operation = (empty($operation) && isset($params['delete'])) ? 'backup' : $operation;
+    $operation = (empty($operation) && (isset($params['backup']) || isset($params['b']))) ? 'backup' : $operation;
     $operation = (empty($operation) && (isset($params['pmlist']) || isset($params['p']))) ? 'pmlist' : $operation;
 
     // Process other options.
     $option['background'] = isset($params['background']); // True or False.
     $option['verbose'] = isset($params['verbose']) || isset($params['v']); // True or False.
-    $option['format'] = isset($params['format']) || isset($params['f']);
+    $option['format'] = !empty($params['format']) || !empty($params['f']);
     if ($option['format']) { // Optional parameter.
-        $option['format'] = isset($params['format']) ? $params['format'] : $params['f'];
+        $option['format'] = !empty($params['format']) ? $params['format'] : $params['f'];
         // Validate list of possible format options.
-        if (in_array($option['format'], ['bytes', 'human'])) {
+        if (!in_array($option['format'], ['bytes', 'human'])) {
             $operation = 'help';
         }
     }
