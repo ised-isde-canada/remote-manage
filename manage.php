@@ -53,7 +53,7 @@ if (Log::$cli_mode) {
     $params = getopt('r:m::f::hbslv', $parameters);
 
     // Help overrides anything else on the command line.
-    $operation = (isset($params['help'])  || isset($params['h']) ? 'help' : $operation);
+    $operation = (isset($params['help'])  || isset($params['h']) ? 'help' : '');
 
     // Process 'restore' parameters.
     if (empty($operation) && (isset($params['restore']) || isset($params['r']))) {
