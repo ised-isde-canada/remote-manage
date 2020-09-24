@@ -54,29 +54,29 @@ if (Log::$cli_mode) {
     $operation = (empty($operation) && (isset($params['help'])  || isset($params['h']))) ? 'help' : $operation;
 
     // Process 'restore' parameters.
-    if (empty($operation) && (!empty($params['restore']) || !empty($params['r']))) {
+    if (empty($operation) && (isset($params['restore']) || isset($params['r']))) {
         $operation = 'restore';
-        $option['filename'] = !empty($params['restore']) ? $params['restore'] : $params['r'];
+        $option['filename'] = isset($params['restore']) ? $params['restore'] : $params['r'];
     }
 
     // Process 'maint' parameters.
-    if (empty($operation) && (!empty($params['maint']) || !empty($params['m']))) {
+    if (empty($operation) && (isset($params['maint']) || isset($params['m']))) {
         $operation = 'maint';
-        $option['status'] = !empty($params['maint']) ? $params['maint'] : $params['m'];
+        $option['status'] = isset($params['maint']) ? $params['maint'] : $params['m'];
     }
 
     // The following operations do not have any parameters.
-    $operation = (empty($operation) && (!empty($params['space'])  || !empty($params['s']))) ? 'space'  : $operation;
-    $operation = (empty($operation) && (!empty($params['s3list']) || !empty($params['l']))) ? 's3list' : $operation;
-    $operation = (empty($operation) && !empty($params['delete'])) ? 'backup' : $operation;
-    $operation = (empty($operation) && (!empty($params['pmlist']) || !empty($params['p']))) ? 'pmlist' : $operation;
+    $operation = (empty($operation) && (isset($params['space'])  || isset($params['s']))) ? 'space'  : $operation;
+    $operation = (empty($operation) && (isset($params['s3list']) || isset($params['l']))) ? 's3list' : $operation;
+    $operation = (empty($operation) && isset($params['delete'])) ? 'backup' : $operation;
+    $operation = (empty($operation) && (isset($params['pmlist']) || isset($params['p']))) ? 'pmlist' : $operation;
 
     // Process other options.
-    $option['background'] = !empty($params['background']);
-    $option['verbose'] = !empty($params['verbose']) || !empty($params['v']);
-    $option['format'] = !empty($params['format']) || !empty($params['f']);
+    $option['background'] = isset($params['background']);
+    $option['verbose'] = isset($params['verbose']) || isset($params['v']);
+    $option['format'] = isset($params['format']) || isset($params['f']);
     if ($option['format']) {
-        $option['format'] = !empty($params['format']) ? $params['format'] : $params['f'];
+        $option['format'] = isset($params['format']) ? $params['format'] : $params['f'];
         if (in_array($option['format'], ['bytes', 'off'])) {
             $operation = false;
         }
@@ -94,12 +94,12 @@ if (Log::$cli_mode) {
 else { // Web form post mode.
     $operation = $_REQUEST['operation'];
     $option['filename'] = isset($_REQUEST['filename']) ? $_REQUEST['filename'] : '';
-    $option['format'] = !empty($_REQUEST['format']) ? $_REQUEST['format'] : '';
-    $option['verbose'] = !empty($_REQUEST['verbose']);
+    $option['format'] = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
+    $option['verbose'] = isset($_REQUEST['verbose']);
 }
 
 // Enable verbose mode if requested.
-define('DEBUGMODE', !empty($option['verbose']));
+define('DEBUGMODE', $option['verbose']);
 if (DEBUGMODE) {
     Log::msg('Verbose mode is enabled.');
 }
