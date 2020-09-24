@@ -235,7 +235,7 @@ switch ($operation) {
                 'totalspace' => $disk->total,
                 'freespace' => $disk->free,
                 'usedspace' => $disk->used,
-                'usedpercentage' => round($disk->percentage, 2)
+                'usedpercentage' => $disk->percentage
             ];
             Log::data($diskspace);
         }
