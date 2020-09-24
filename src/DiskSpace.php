@@ -44,7 +44,7 @@ class DiskSpace
                 $this->used = formatBytes($this->total - $this->free);
                 $this->total = formatBytes($this->total);
                 $this->free = formatBytes(disk_free_space($path));
-                $this->percentage = $this->percentage . '%';
+                $this->percentage = round($this->percentage, 2) . '%';
             }
         }
     }
