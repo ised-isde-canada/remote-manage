@@ -43,12 +43,14 @@ header("Connection: Keep-alive");
 // Appropriate HTTP header for json reponse.
 header('Content-type: application/json; charset=utf-8');
 
+// Long form of valid parameters. Will be used to validate CLI and Post methods.
+$parameters = ['restore:', 'maint::', 'format::', 'help', 'backup', 'space', 's3list', 'verbose'];
+
 // If using command line...
 Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
-
 if (Log::$cli_mode) {
     // Get command line options.
-    $params = getopt('r:m::f::hbslv', array('restore:', 'maint::', 'format::', 'help', 'backup', 'space', 's3list', 'verbose'));
+    $params = getopt('r:m::f::hbslv', $parameters);
 
     // Help overrides anything else on the command line.
     $operation = (empty($operation) && (isset($params['help'])  || isset($params['h']))) ? 'help' : $operation;
@@ -59,10 +61,16 @@ if (Log::$cli_mode) {
         $option['filename'] = isset($params['restore']) ? $params['restore'] : $params['r'];
     }
 
-    // Process 'maint' parameters.
     if (empty($operation) && (isset($params['maint']) || isset($params['m']))) {
+        // Process 'maint' parameters. Can be blank, on or off.
         $operation = 'maint';
-        $option['status'] = isset($params['maint']) ? $params['maint'] : $params['m'];
+        if (!empty($params['maint'])) {
+            $option['maintmode'] = $params['maint'];
+        }
+        else {
+            $option['maintmode'] = $params['m'];
+        }
+        $option['maintmode'] = strtolower($option['maintmode']);
     }
 
     // The following operations do not have any parameters.
@@ -72,42 +80,55 @@ if (Log::$cli_mode) {
     $operation = (empty($operation) && (isset($params['pmlist']) || isset($params['p']))) ? 'pmlist' : $operation;
 
     // Process other options.
-    $option['background'] = isset($params['background']);
-    $option['verbose'] = isset($params['verbose']) || isset($params['v']);
+    $option['background'] = isset($params['background']); // True or False.
+    $option['verbose'] = isset($params['verbose']) || isset($params['v']); // True or False.
     $option['format'] = isset($params['format']) || isset($params['f']);
-    if ($option['format']) {
+    if ($option['format']) { // Optional parameter.
         $option['format'] = isset($params['format']) ? $params['format'] : $params['f'];
-        if (in_array($option['format'], ['bytes', 'off'])) {
-            $operation = false;
+        // Validate list of possible format options.
+        if (in_array($option['format'], ['bytes', 'human'])) {
+            $operation = 'help';
         }
     }
+}
+else { // Web form post.
+    $operation = $_REQUEST['operation'];
+    $option['filename'] = isset($_REQUEST['filename']) ? $_REQUEST['filename'] : '';
+    $option['format'] = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
+    $option['verbose'] = isset($_REQUEST['verbose']);
+    $option['background'] = isset($_REQUEST['background']);
+
+}
+
+// Validate requested operation.
+
+// Trim off all : and :: from each valid parameter in list.
+$parameters = array_map('rtrim', $parameters, array_fill(0, count($parameters), ':'));
+// Check if operation parameter is in the list.
+if (!in_array($operation, $parameters, true)) {
+    $noOp = $operation;  // Save invalid parameter.
+    $operation = 'help'; // Change operation to help.
+}
+
+// Handle help.
+
+if (Log::$cli_mode) { // Command line mode...
+    // Help establish initial feedback that something is happening.
+    echo '.';
 
     if (empty($operation) || $operation == 'help') {
         // Display help and exit.
         fwrite(STDERR, file_get_contents(__DIR__ . '/help.txt'));
         exit(1);
     }
-
-    // Help establish initial feedback that something is happening.
-    echo '.';
 }
-else { // Web form post mode.
-    $operation = $_REQUEST['operation'];
-    $option['filename'] = isset($_REQUEST['filename']) ? $_REQUEST['filename'] : '';
-    $option['format'] = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
-    $option['verbose'] = isset($_REQUEST['verbose']);
-}
+else { // Post mode.
+    // Help establish initial connection.
+    echo PHP_EOL;
 
-// Enable verbose mode if requested.
-define('DEBUGMODE', $option['verbose']);
-if (DEBUGMODE) {
-    Log::msg('Verbose mode is enabled.');
-}
-
-if (!Log::$cli_mode) { // Web form post mode.
     // Help is not supported via POST.
     if ($operation == 'help') {
-        Log::error("Invalid operation: $operation");
+        Log::error("Invalid operation: $noOp");
         Log::endItAll('error');
     }
     else if (empty($operation)) {
@@ -115,9 +136,12 @@ if (!Log::$cli_mode) { // Web form post mode.
         Log::error('The operation is missing.');
         Log::endItAll('error');
     }
+}
 
-    // Help establish initial connection.
-    echo PHP_EOL;
+// Enable verbose mode if requested.
+define('DEBUGMODE', $option['verbose']);
+if (DEBUGMODE) {
+    Log::msg('Verbose mode is enabled.');
 }
 
 // Ensure filename was specified, if required.
@@ -194,11 +218,11 @@ switch ($operation) {
 
     case 'space': // Disk space information.
         $success = true;
+        // Default format: CLI = human. Web = bytes.
+        $format = (Log::$cli_mode ? 'human' : 'bytes');
+        // But may be overwridden by format parameter.
+        $format = (!empty($option['format']) ? $option['format'] : $format);
         foreach ($site->volumes as $volume) {
-            // Default format: CLI = human. Web = bytes.
-            $format = (Log::$cli_mode ? 'human' : 'bytes');
-            // But may be overwridden by format parameter.
-            $format = (!empty($option['format']) ? $params['format'] : $format);
             // Get disk information.
             $disk = new DiskSpace($volume, $format);
             // If invalid volume specified, disk total space will be FALSE.
@@ -218,14 +242,14 @@ switch ($operation) {
         break;
 
     case 'maint': // Set site in production mode.
-        switch(strtolower($option['status'])) { // This is actually mode in this case.
+        switch($option['maintmode']) { // This is actually mode in this case.
             case 'on':
                 $success = $site->maintMode(true);
                 break;
             case 'off':
                 $success = $site->maintMode(false);
                 break;
-            default:
+            default: // If no parameter was specified, just return status.
                 Log::data(($site->inMaintMode ? 'on' : 'off'));
                 $success = true;
         }
