@@ -51,30 +51,30 @@ if (Log::$cli_mode) {
     $params = getopt('r:m::f::hbslv', array('restore:', 'maint::', 'format::', 'help', 'backup', 'space', 's3list', 'verbose'));
 
     // Help overrides anything else on the command line.
-    $operation = (empty($operation) && (isset($param['help'])  || isset($param['h']))) ? 'help' : $operation;
+    $operation = (empty($operation) && (isset($params['help'])  || isset($params['h']))) ? 'help' : $operation;
 
     // Process 'restore' parameters.
-    if (empty($operation) && (!empty($param['restore']) || !empty($param['r']))) {
+    if (empty($operation) && (!empty($params['restore']) || !empty($params['r']))) {
         $operation = 'restore';
         $option['filename'] = !empty($params['restore']) ? $params['restore'] : $params['r'];
     }
 
     // Process 'maint' parameters.
-    if (empty($operation) && (!empty($param['maint']) || !empty($param['m']))) {
+    if (empty($operation) && (!empty($params['maint']) || !empty($params['m']))) {
         $operation = 'maint';
         $option['status'] = !empty($params['maint']) ? $params['maint'] : $params['m'];
     }
 
     // The following operations do not have any parameters.
-    $operation = (empty($operation) && (!empty($param['space'])  || !empty($param['s']))) ? 'space'  : $operation;
-    $operation = (empty($operation) && (!empty($param['s3list']) || !empty($param['l']))) ? 's3list' : $operation;
-    $operation = (empty($operation) && !empty($param['delete'])) ? 'backup' : $operation;
-    $operation = (empty($operation) && (!empty($param['pmlist']) || !empty($param['p']))) ? 'pmlist' : $operation;
+    $operation = (empty($operation) && (!empty($params['space'])  || !empty($params['s']))) ? 'space'  : $operation;
+    $operation = (empty($operation) && (!empty($params['s3list']) || !empty($params['l']))) ? 's3list' : $operation;
+    $operation = (empty($operation) && !empty($params['delete'])) ? 'backup' : $operation;
+    $operation = (empty($operation) && (!empty($params['pmlist']) || !empty($params['p']))) ? 'pmlist' : $operation;
 
     // Process other options.
-    $option['background'] = !empty($param['background']);
-    $option['verbose'] = !empty($param['verbose']) || !empty($param['v']);
-    $option['format'] = !empty($param['format']) || !empty($param['f']);
+    $option['background'] = !empty($params['background']);
+    $option['verbose'] = !empty($params['verbose']) || !empty($params['v']);
+    $option['format'] = !empty($params['format']) || !empty($params['f']);
     if ($option['format']) {
         $option['format'] = !empty($params['format']) ? $params['format'] : $params['f'];
         if (in_array($option['format'], ['bytes', 'off'])) {
