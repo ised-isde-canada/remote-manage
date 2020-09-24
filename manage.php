@@ -44,7 +44,7 @@ header("Connection: Keep-alive");
 header('Content-type: application/json; charset=utf-8');
 
 // Long form of valid parameters. Will be used to validate CLI and Post methods.
-$parameters = ['restore:', 'maint::', 'format::', 'help', 'backup', 'delete', 'space', 's3list', 'verbose'];
+$parameters = ['restore:', 'background:', 'maint::', 'format::', 'help', 'backup', 'delete', 'space', 's3list', 'verbose'];
 
 // If using command line...
 Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
@@ -84,7 +84,7 @@ if (Log::$cli_mode) {
     $operation = (empty($operation) && (isset($params['pmlist']) || isset($params['p']))) ? 'pmlist' : $operation;
 
     // Process other options.
-    $option['background'] = isset($params['background']); // True or False.
+    $option['background'] = !empty($params['background']) ? $params['background'] : ''; // Job pid.
     $option['verbose'] = isset($params['verbose']) || isset($params['v']); // True or False.
     $option['format'] = !empty($params['format']) || !empty($params['f']);
     if ($option['format']) { // Optional parameter.
@@ -100,7 +100,7 @@ else { // Web form post.
     $option['filename'] = isset($_REQUEST['filename']) ? $_REQUEST['filename'] : '';
     $option['format'] = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
     $option['verbose'] = isset($_REQUEST['verbose']);
-    $option['background'] = isset($_REQUEST['background']);
+    $option['background'] = isset($_REQUEST['background']) ? $_REQUEST['background'] : '';
 
 }
 
