@@ -183,7 +183,7 @@ Log::stopWatch();
 $site = getSite();
 
 Log::msg('Site type is: ' . $site->siteType);
-Log::msg('Performing ' . trim($operation . ' ' . $option['filename']) . ' operation.');
+Log::msg('Performing ' . trim($operation . ' ' . $option['background'] . $option['filename'] . $option['format']) . ' operation.');
 
 // Get the application name from the environment
 if (empty($site->appEnv = getenv('APP_NAME'))) {

@@ -47,39 +47,6 @@ class Log
     }
 
     /**
-     * Return last message.
-     *
-     * @param integer $lastindex Offset from last message. Example 2 would be second to last message in queue.
-     *
-     * @return string
-     */
-    public static function getlast($lastindex = 1, $type = 'msg')
-    {
-        switch($type) {
-            case 'msg':
-                $arr = self::$messages;
-                break;
-            case 'error':
-                $arr = self::$error;
-                break;
-            case 'status':
-                $arr = self::$status;
-                break;
-            case 'data':
-                $arr = self::$data;
-                break;
-            default:
-                $arr = ['Invalid log type.'];
-        }
-        // Handle case where there are not enough elements in the array).
-        $last = count($arr) - 1;
-        if ($last < 1 || $lastindex > $last) {
-            return null;
-        }
-        return $arr[count($arr) - $lastindex];
-    }
-
-    /**
      * Set an error. Do not include a newline character at the end of your message!
      *
      * @param string $str  Text to be added to messages.

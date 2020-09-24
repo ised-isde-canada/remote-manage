@@ -11,12 +11,12 @@ class SysCmd
      *
      * @param string $cmd         The command to be executed.
      * @param string $dir         Optional directory from where to execute the command.
-     * @param bool   $forceLog    Optionally capture command output to log.
      * @param bool   $allowErrors Allow errors (true) or don't allow errors (false).
+     * @param bool   $retLog      Optionally capture and return command output array instead of exit code.
      *
-     * @return integer $rc       Return code from executable.
+     * @return integer $rc        Return code from executable.
      */
-    public static function exec($cmd, $dir = '', $allowErrors = false)
+    public static function exec($cmd, $dir = '', $allowErrors = false, $retLog = false)
     {
         // Change into specified directory if specified.
         if (!empty($dir)) {
@@ -104,6 +104,6 @@ class SysCmd
             throw new \Exception("Command $cmd execution failure. Return code=$rc");
         }
 
-        return $rc;
+        return ($retLog ? $output : $rc);
     }
 }
