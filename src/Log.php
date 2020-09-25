@@ -1,116 +1,80 @@
 <?php
 
-/**
- * Logger class.
- * This is intended to be used as a static class, to make it easy to add log messages from anywhere,
- * and then retrieve them before the main script terminates.
- */
-
 namespace RemoteManage;
 
 /**
- * The Log class is useful for collecting diagnostic messages.
+ * Log class.
+ * This is intended to be used as a static class, to make it easy to add log messages from anywhere.
  */
 class Log
 {
-    public  static $cli_mode = false;
-    private static $status = [];
-    private static $error = [];
-    private static $data = [];
-    private static $messages = [];
+    public  static $debugMode = false;
+    public  static $errCount = 0;
     private static $startTime = null;
     private static $endTime = null;
 
     /**
-     * Return an array of all messages.
+     * Print an error. Do not include a newline character at the end of your message!
      *
-     * @return array
-     */
-    public static function get($type = 'msg')
-    {
-        switch($type) {
-            case 'msg':
-                return self::$messages;
-                break;
-            case 'error':
-                return self::$error;
-                break;
-            case 'status':
-                return self::$status;
-                break;
-            case 'data':
-                return self::$data;
-                break;
-            default:
-                return 'Invalid log type.';
-        }
-    }
-
-    /**
-     * Set an error. Do not include a newline character at the end of your message!
-     *
-     * @param string $str  Text to be added to messages.
-     * @param string $type Adds to json.
+     * @param string $str Error string.
      *
      * @return null
      */
     public static function error($str)
     {
-        self::$error = $str;
-
-        // Add a copy of everything in self::$messages.
-        self::$messages[] = $str;
-    }
-
-    /**
-     * Set a status. Do not include a newline character at the end of your message!
-     *
-     * @param string $str  Text to be added to messages.
-     * @param string $type Adds to json.
-     *
-     * @return null
-     */
-    public static function status($str)
-    {
-        self::$status = $str;
-
-        // Add a copy of everything in self::$messages.
-        self::$messages[] = $str;
+        echo "ERROR: $str" . PHP_EOL;
+        self::$errCount++;
     }
 
     /**
      * Set a message. Do not include a newline character at the end of your message!
      *
-     * @param string $str  Text to be added to messages.
-     * @param string $type Adds to json.
+     * @param string|array $str  Text to be printed. Can be a string or an array of strings.
      *
      * @return null
      */
     public static function msg($str)
     {
-        if (!self::$cli_mode) {
-            // If CLI, display everything to console.
-            self::$messages[] = $str;
-        }
-        else if (DEBUGMODE) {
-            // If web, add to self::$messages.
+        if (is_array($str)) {
+            foreach ($str as $s) {
+                echo $s . PHP_EOL;
+            }
+        } else {
             echo $str . PHP_EOL;
+        }
+    }
+
+    /**
+     * Set a debug message, which will only print in debug mode.
+     * Do not include a newline character at the end of your message!
+     *
+     * @param string|array $str  Debug text to be printed. Can be a string or an array of strings.
+     *
+     * @return null
+     */
+    public static function debug($str)
+    {
+        if (self::$debugMode) {
+            if (is_array($str)) {
+                foreach ($str as $s) {
+                    echo $s . PHP_EOL;
+                }
+            } else {
+                echo $str . PHP_EOL;
+            }
         }
     }
 
     /**
      * Set some data. Do not include a newline character at the end of your message!
      *
-     * @param string $arr  Array to be added to data.
+     * @param string $arr  Array of data to be printed.
      *
      * @return null
      */
     public static function data($arr)
     {
-        self::$data[] = $arr;
-
-        // Add a copy of everything in self::$messages.
-        self::$messages[] = $arr;
+        self::msg(print_r($arr, true));
     }
 
     /**
@@ -143,36 +107,5 @@ class Log
             default:
                 self::msg('Invalid stopWatch operation.');
         }
-    }
-
-    /**
-     *
-     */
-    public static function endItAll($status = 'success')
-    {
-        // If using the CLI, we're done. The message were already printed out as they happened.
-        //if (!self::$cli_mode) {
-            $exitcode = 0;
-            // Create the JSON response
-            $json = [];
-            $json['status'] = $status;
-            if ($status == 'error') {
-                $json['error'] = self::get('error');
-                $exitcode = 1;
-            }
-            else {
-                $json['data'] = self::get('data');
-                if (empty($json['data'])) {
-                    unset($json['data']);
-                }
-            }
-            if (DEBUGMODE) {
-                $json['messages'] = self::get('msg');
-            }
-
-            // Exit with a valid JSON response.
-            echo json_encode($json, JSON_PRETTY_PRINT) . PHP_EOL;
-            exit($exitcode);
-        //}
     }
 }

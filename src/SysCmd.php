@@ -25,60 +25,9 @@ class SysCmd
             chdir($dir);
         }
 
-        // Run gzip and tar as background tasks to avoid connection timeout.
-        if (strpos($cmd, 'gzip ') === 0
-                || strpos($cmd, 'tar ') === 0
-                || strpos($cmd, 'rsync ') === 0
-                || strpos($cmd, 'gunzip ') === 0) {
-            Log::msg('Forking the background process...');
-            Log::msg($cmd);
-            if (!Log::$cli_mode) {
-                flush();
-                ob_flush();
-            }
-            $site = getSite();
-            $descriptorspec = [
-                0 => ['pipe', 'r'], // Input.
-                1 => ['pipe', 'w'], // Output.
-                2 => ['pipe', 'w']  // Errors.
-            ];
-
-            $process = proc_open($cmd, $descriptorspec, $pipes);
-            do { // Keep the party going until we are all partied-out.
-                sleep(1);
-                $status = @\proc_get_status($process);
-                if (empty($status['running']) && !empty($status['stopped'])) {
-                    // Kill the zombie king!
-                    @\proc_terminate($process);
-                    $status['running'] = false;
-                }
-                if (!empty($status['running'])) {
-                    if (Log::$cli_mode) {
-                        echo '.';
-                    }
-                    else {
-                        // Waiting for you know who to finish work.
-                        echo PHP_EOL; // This line keeps the connection alive.
-                        flush();
-                        ob_flush();
-                    }
-                    sleep(3);
-                }
-            } while (!empty($status['running']));
-
-            // Last words.
-            $rc = $status['exitcode'];
-            $output = stream_get_contents($pipes[1]);
-            $output .= stream_get_contents($pipes[2]);
-            fclose($pipes[1]);
-            fclose($pipes[2]);
-            $output = explode("\n", $output);
-        }
-        else {
-            Log::msg('Running process...');
-            Log::msg($cmd);
-            exec($cmd, $output, $rc);
-        }
+        Log::msg('Running process...');
+        Log::msg($cmd);
+        exec($cmd, $output, $rc);
 
         // Save the last return code in case the caller wants to retrieve it.
         self::$last_rc = $rc;

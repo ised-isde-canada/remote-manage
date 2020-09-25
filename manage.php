@@ -11,7 +11,7 @@
  * @license MIT https://opensource.org/licenses/MIT
  *
  * This script is the main entry point for remote management. Operations are:
- * - help: Displays help in CLI mode.
+ * - help: Displays help.
  * - backup: Perform backup operation.
  * - restore: Perform restore operation.
  * - space: Display available space for specified volumes.
@@ -36,72 +36,57 @@ use RemoteManage\Drush;
 
 // Set timeout to 3 hours.
 set_time_limit(10800);
+
 // Use local timezone
 date_default_timezone_set("America/Toronto");
-// Keep session alive.
-header("Connection: Keep-alive");
-// Appropriate HTTP header for json reponse.
-header('Content-type: application/json; charset=utf-8');
 
-// Long form of valid parameters. Will be used to validate CLI and Post methods.
+// Long form of valid parameters.
 $parameters = ['restore:', 'background:', 'maint::', 'format::', 'help', 'backup', 'delete', 'space', 's3list', 'verbose'];
 
-// If using command line...
-Log::$cli_mode = (php_sapi_name() == 'cli') && !isset($_SERVER['REMOTE_ADDR']);
-if (Log::$cli_mode) {
-    // Get command line options.
-    $params = getopt('r:m::f::hbslv', $parameters);
+// Get command line options.
+$params = getopt('r:m::f::hbslv', $parameters);
 
-    // Help overrides anything else on the command line.
-    $operation = (isset($params['help'])  || isset($params['h']) ? 'help' : '');
+// Help overrides anything else on the command line.
+$operation = (isset($params['help'])  || isset($params['h']) ? 'help' : '');
 
-    // Process 'restore' parameters.
-    if (empty($operation) && (isset($params['restore']) || isset($params['r']))) {
-        $operation = 'restore';
-        $option['filename'] = isset($params['restore']) ? $params['restore'] : $params['r'];
+// Process 'restore' parameters.
+if (empty($operation) && (isset($params['restore']) || isset($params['r']))) {
+    $operation = 'restore';
+    $option['filename'] = isset($params['restore']) ? $params['restore'] : $params['r'];
+}
+else {
+    $option['filename'] = '';
+}
+
+if (empty($operation) && (isset($params['maint']) || isset($params['m']))) {
+    // Process 'maint' parameters. Can be blank, on or off.
+    $operation = 'maint';
+    if (!empty($params['maint'])) {
+        $option['maintmode'] = $params['maint'];
     }
     else {
-        $option['filename'] = '';
+        $option['maintmode'] = $params['m'];
     }
-
-    if (empty($operation) && (isset($params['maint']) || isset($params['m']))) {
-        // Process 'maint' parameters. Can be blank, on or off.
-        $operation = 'maint';
-        if (!empty($params['maint'])) {
-            $option['maintmode'] = $params['maint'];
-        }
-        else {
-            $option['maintmode'] = $params['m'];
-        }
-        $option['maintmode'] = strtolower($option['maintmode']);
-    }
-
-    // The following operations do not have any parameters.
-    $operation = (empty($operation) && isset($params['delete'])) ? 'delete' : $operation;
-    $operation = (empty($operation) && (isset($params['space'])  || isset($params['s']))) ? 'space'  : $operation;
-    $operation = (empty($operation) && (isset($params['s3list']) || isset($params['l']))) ? 's3list' : $operation;
-    $operation = (empty($operation) && (isset($params['backup']) || isset($params['b']))) ? 'backup' : $operation;
-    $operation = (empty($operation) && (isset($params['pmlist']) || isset($params['p']))) ? 'pmlist' : $operation;
-
-    // Process other options.
-    $option['background'] = !empty($params['background']) ? $params['background'] : ''; // Job pid.
-    $option['verbose'] = isset($params['verbose']) || isset($params['v']); // True or False.
-    $option['format'] = !empty($params['format']) || !empty($params['f']);
-    if ($option['format']) { // Optional parameter.
-        $option['format'] = !empty($params['format']) ? $params['format'] : $params['f'];
-        // Validate list of possible format options.
-        if (!in_array($option['format'], ['bytes', 'human'])) {
-            $operation = 'help';
-        }
-    }
+    $option['maintmode'] = strtolower($option['maintmode']);
 }
-else { // Web form post.
-    $operation = $_REQUEST['operation'];
-    $option['filename'] = isset($_REQUEST['filename']) ? $_REQUEST['filename'] : '';
-    $option['format'] = isset($_REQUEST['format']) ? $_REQUEST['format'] : '';
-    $option['verbose'] = isset($_REQUEST['verbose']);
-    $option['background'] = isset($_REQUEST['background']) ? $_REQUEST['background'] : '';
 
+// The following operations do not have any parameters.
+$operation = (empty($operation) && isset($params['delete'])) ? 'delete' : $operation;
+$operation = (empty($operation) && (isset($params['space'])  || isset($params['s']))) ? 'space'  : $operation;
+$operation = (empty($operation) && (isset($params['s3list']) || isset($params['l']))) ? 's3list' : $operation;
+$operation = (empty($operation) && (isset($params['backup']) || isset($params['b']))) ? 'backup' : $operation;
+$operation = (empty($operation) && (isset($params['pmlist']) || isset($params['p']))) ? 'pmlist' : $operation;
+
+// Process other options.
+$option['background'] = !empty($params['background']) ? $params['background'] : ''; // Job pid.
+$option['verbose'] = isset($params['verbose']) || isset($params['v']); // True or False.
+$option['format'] = !empty($params['format']) || !empty($params['f']);
+if ($option['format']) { // Optional parameter.
+    $option['format'] = !empty($params['format']) ? $params['format'] : $params['f'];
+    // Validate list of possible format options.
+    if (!in_array($option['format'], ['bytes', 'human'])) {
+        $operation = 'help';
+    }
 }
 
 // Validate requested operation.
@@ -116,42 +101,18 @@ if (!in_array($operation, $parameters, true)) {
 
 // Handle help.
 
-if (Log::$cli_mode) { // Command line mode...
-    // Help establish initial feedback that something is happening.
-    echo '.';
-
-    if (empty($operation) || $operation == 'help') {
-        // Display help and exit.
-        fwrite(STDERR, file_get_contents(__DIR__ . '/help.txt'));
-        exit(1);
-    }
-}
-else { // Post mode.
-    // Help establish initial connection.
-    echo PHP_EOL;
-
-    // Help is not supported via POST.
-    if ($operation == 'help') {
-        Log::error("Invalid operation: $noOp");
-        Log::endItAll('error');
-    }
-    else if (empty($operation)) {
-        // Someone forgot a little detail!
-        Log::error('The operation is missing.');
-        Log::endItAll('error');
-    }
+if (empty($operation) || $operation == 'help') {
+    // Display help and exit.
+    fwrite(STDERR, file_get_contents(__DIR__ . '/help.txt'));
+    exit(1);
 }
 
-// Enable verbose mode if requested.
-define('DEBUGMODE', $option['verbose']);
-if (DEBUGMODE) {
-    Log::msg('Verbose mode is enabled.');
-}
+Log::$debugMode = isset($option['verbose']) ? true : false;
 
 // Ensure filename was specified, if required.
 if ($operation == 'restore' && empty($option['filename'])) {
     Log::error('Missing filename.');
-    Log::endItAll('error');
+    exit(1);
 }
 
 // Get S3 credentials and settings if required.
@@ -166,17 +127,15 @@ if ($aws_op) {
         }
     }
 
-    // Get credentials and settings if provided via POST .
-    // These would override any settings from the .env file above.
-    $envVars = ['aws_access_key_id', 'aws_secret_access_key', 'aws_s3_bucket', 'aws_s3_region'];
+    // Check to ensure that all AWS credentials are set.
+    $envVars = ['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_S3_BUCKET', 'AWS_S3_REGION'];
     foreach ($envVars as $evar) {
-        if (isset($_POST[$evar])) {
-            putenv(strtoupper($evar) . '=' . $_POST[$evar]);
-        } else if (!getenv(strtoupper($evar))) {
-            // Report missing credentials.
-            Log::error("ERROR: AWS $evar missing.");
-            Log::endItAll('error');
+        if (!getenv($evar)) {
+            Log::error("$evar missing.");
         }
+    }
+    if (Log::$errCount > 0) {
+        exit(1);
     }
 }
 
@@ -191,8 +150,8 @@ Log::msg('Performing ' . trim($operation . ' ' . $option['filename'] . $option['
 
 // Get the application name from the environment
 if (empty($site->appEnv = getenv('APP_NAME'))) {
-    Log::error('ERROR: APP_NAME is undefined.');
-    Log::endItAll('error');
+    Log::error('APP_NAME is undefined.');
+    exit(1);
 }
 
 // Get the requested operation and dispatch.
@@ -222,8 +181,7 @@ switch ($operation) {
 
     case 'space': // Disk space information.
         $success = true;
-        // Default format: CLI = human. Web = bytes.
-        $format = (Log::$cli_mode ? 'human' : 'bytes');
+        $format = 'human'; // Or could be 'bytes'
         // But may be overwridden by format parameter.
         $format = (!empty($option['format']) ? $option['format'] : $format);
         foreach ($site->volumes as $volume) {
@@ -254,7 +212,7 @@ switch ($operation) {
                 $success = $site->maintMode(false);
                 break;
             default: // If no parameter was specified, just return status.
-                Log::data(($site->inMaintMode ? 'on' : 'off'));
+                Log::msg('MaintMode: ' . $site->inMaintMode ? 'on' : 'off');
                 $success = true;
         }
         break;
@@ -266,11 +224,10 @@ switch ($operation) {
     default:
         Log::error('The operation "' . $operation . '" invalid.');
         $success = false;
-
 }
 
 // Stop timer and record elapsed time.
 Log::stopWatch('stop');
 
 // Complete execution.
-Log::endItAll($success ? 'success' : 'error');
+exit($success ? 0 : 1);

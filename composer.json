@@ -8,5 +8,7 @@
           "RemoteManage\\": "src/"
         }
     },
-    "require": {}
+    "require": {
+        "aws/aws-sdk-php": "^3.155"
+    }
 }
