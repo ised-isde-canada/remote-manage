@@ -93,7 +93,7 @@ class S3Cmd
 
     public function copy($filename, $path)
     {
-        if(!$this->error) {
+        if (!$this->error) {
             $uploader = new MultipartUploader($this->s3, $path, [
                 'bucket' => $this->s3_bucket,
                 'key'    => $filename
@@ -114,7 +114,7 @@ class S3Cmd
 
     public function getFile($filename, $path)
     {
-        if(!$this->error) {
+        if (!$this->error) {
             // Check if file exists.
             if (!$this->s3->doesObjectExist($this->s3_bucket, $filename)) {
                 Log::error('S3 file not found: ' . $filename);

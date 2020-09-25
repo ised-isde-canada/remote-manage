@@ -81,8 +81,7 @@ Log::msg('Performing ' . $operation . ' operation.');
 
 // Get the application name from the environment
 if (empty($site->appEnv = getenv('APP_NAME'))) {
-    Log::error('APP_NAME is undefined.');
-    exit(1);
+    Log::exitError('APP_NAME is undefined.');
 }
 
 // Get the requested operation and dispatch.
@@ -141,7 +140,7 @@ switch ($operation) {
 
     case 'maint': // Set site in production mode.
         $mode = strtolower(array_shift($opArgs));
-        switch($mode) {
+        switch ($mode) {
             case 'on':
                 $success = $site->maintMode(true);
                 break;
@@ -155,8 +154,7 @@ switch ($operation) {
         break;
 
     default:
-        Log::error('The operation "' . $operation . '" is invalid.');
-        $success = false;
+        Log::exitError('The operation "' . $operation . '" is invalid.');
 }
 
 // Stop timer and record elapsed time.

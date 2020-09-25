@@ -27,6 +27,11 @@ class Log
         self::$errCount++;
     }
 
+    /**
+     * Print an error and exit. Do not include a newline character at the end of your message!
+     *
+     * @param string $str Error string.
+     */
     public static function exitError($str)
     {
         echo "ERROR: $str" . PHP_EOL;
@@ -65,6 +70,11 @@ class Log
         self::$data[] = $data;
     }
 
+    /**
+     * Print the data array in JSON format.
+     *
+     * @return null
+     */
     public static function printData()
     {
         if (self::$errCount == 0) {
@@ -84,7 +94,7 @@ class Log
      */
     public static function stopWatch($op = 'start')
     {
-        switch($op) {
+        switch ($op) {
             case 'start':
                 self::$startTime = microtime(true);
                 self::msg('Starting at ' . date('H:i:s', self::$startTime) . '...');
