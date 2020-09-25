@@ -46,15 +46,35 @@ class S3Cmd
         ]);
     }
 
+    /**
+     * Check to ensure that all AWS credentials are set as environment variables.
+     */
+    public static function checkCredentials()
+    {
+        $success = true;
+        foreach (['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_S3_BUCKET', 'AWS_S3_REGION'] as $evar) {
+            if (!getenv($evar)) {
+                Log::error("$evar missing.");
+                $success = false;
+            }
+        }
+        return $success;
+    }
+
     public function getList()
     {
-        if(!$this->error) {
+        // Check to make sure we have S3 credentials available
+        if (!self::checkCredentials()) {
+            return false;
+        }
+
+        if (!$this->error) {
             try {
                 $result = $this->s3->listObjectsV2([
                     'Bucket' => $this->s3_bucket
                 ]);
             }
-            catch(S3Exception $e) {
+            catch (S3Exception $e) {
                 Log::msg('S3 Exception on listObjectsV2!');
                 return false;
             }

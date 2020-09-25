@@ -10,6 +10,7 @@ class Log
 {
     public  static $debugMode = false;
     public  static $errCount = 0;
+    private static $data = null;
     private static $startTime = null;
     private static $endTime = null;
 
@@ -26,6 +27,12 @@ class Log
         self::$errCount++;
     }
 
+    public static function exitError($str)
+    {
+        echo "ERROR: $str" . PHP_EOL;
+        exit(1);
+    }
+
     /**
      * Set a message. Do not include a newline character at the end of your message!
      *
@@ -34,25 +41,6 @@ class Log
      * @return null
      */
     public static function msg($str)
-    {
-        if (is_array($str)) {
-            foreach ($str as $s) {
-                echo $s . PHP_EOL;
-            }
-        } else {
-            echo $str . PHP_EOL;
-        }
-    }
-
-    /**
-     * Set a debug message, which will only print in debug mode.
-     * Do not include a newline character at the end of your message!
-     *
-     * @param string|array $str  Debug text to be printed. Can be a string or an array of strings.
-     *
-     * @return null
-     */
-    public static function debug($str)
     {
         if (self::$debugMode) {
             if (is_array($str)) {
@@ -68,13 +56,23 @@ class Log
     /**
      * Set some data. Do not include a newline character at the end of your message!
      *
-     * @param string $arr  Array of data to be printed.
+     * @param string $data  Array of data to be printed as output.
      *
      * @return null
      */
-    public static function data($arr)
+    public static function data($data)
     {
-        self::msg(print_r($arr, true));
+        self::$data[] = $data;
+    }
+
+    public static function printData()
+    {
+        if (self::$errCount == 0) {
+            if (is_array(self::$data)) {
+                self::msg('DATA:');
+                echo json_encode(self::$data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+            }
+        }
     }
 
     /**

@@ -44,6 +44,11 @@ abstract class BaseSite
      */
     public function backup()
     {
+        // Check to make sure we have S3 credentials available
+        if (!S3Cmd::checkCredentials()) {
+            return false;
+        }
+
         Log::msg("Backup process is running...");
 
         // Use the current date and time to determine backup type as one of: D (daily), W (weekly), M (monthly).
@@ -293,6 +298,14 @@ abstract class BaseSite
      */
     public function restore($backupFile)
     {
+        // Check to make sure we have S3 credentials available
+        if (!S3Cmd::checkCredentials()) {
+            return false;
+        }
+
+        if (!$backupFile) {
+            Log::exitError('Missing filename.');
+        }
         Log::msg("Restore process is running...");
         $this->restoreArchive = $backupFile;
         $this->restoreTarFile = basename($backupFile);

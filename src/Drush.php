@@ -11,7 +11,7 @@ class Drush
     {
         chdir('/opt/app-root/src');
         $result = explode("\n", `vendor/bin/drush pm:list`);
-        Log::msg($result);
+        Log::data($result);
         return true;
     }
 }
