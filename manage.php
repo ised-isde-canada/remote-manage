@@ -148,7 +148,7 @@ switch ($operation) {
             case 'off':
                 $success = $site->maintMode(false);
                 break;
-            default: // If no parameter was specified, just return status.
+            default: // If no parameter, or an invalid parameter was specified, just return status.
                 $success = true;
         }
         Log::data('maintMode', $site->inMaintMode ? 'on' : 'off');
@@ -164,4 +164,5 @@ Log::stopWatch('stop');
 Log::printData();
 
 // Complete execution.
+$site->cleanup();
 exit($success ? 0 : 1);

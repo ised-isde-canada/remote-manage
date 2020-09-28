@@ -35,6 +35,7 @@ class Log
     public static function exitError($str)
     {
         echo "ERROR: $str" . PHP_EOL;
+        getSite()->cleanup();
         exit(1);
     }
 

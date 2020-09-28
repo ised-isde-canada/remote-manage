@@ -19,7 +19,7 @@ $job = (isset($_REQUEST['job']) && $_REQUEST['job'] == 'true') ? getmypid() : nu
 $json = [];
 
 // Assemble the basic command to run
-$cmd = '/usr/bin/php /opt/app-root/src/vendor/ised/remote-manage/manage.php';
+$cmd = 'php /opt/app-root/src/vendor/ised/remote-manage/manage.php';
 
 if ($options) {
     $cmd .= ' ' . join(' ', $options);
@@ -55,7 +55,6 @@ switch ($operation) {
             $json = getJSONResult(`$cmd restore $s3file`);
         }
         break;
-        break;
 
     case 'query':
         $job = $_REQUEST['job'];
@@ -66,12 +65,21 @@ switch ($operation) {
 
     case 'maint':
         $mode = $_REQUEST['mode'] ?? '';
-        $json = getJSONResult(`$cmd $operation $mode`);
+        $json = getJSONResult(`$cmd maint $mode`);
+        break;
+
+    case 's3list':
+        getS3Credentials();
+        $json = getJSONResult(`$cmd s3list`);
         break;
 
     case 'pmlist':
-    case 's3list':
+        $json = getJSONResult(`$cmd pmlist`);
+        break;
+
     case 'space':
+        $json = getJSONResult(`$cmd space`);
+        break;
 
     default:
         $json = [

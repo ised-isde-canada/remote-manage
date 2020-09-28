@@ -9,9 +9,10 @@ class Drush
 {
     public function pmList()
     {
+        $cwd = getcwd();
         chdir('/opt/app-root/src');
-        $result = explode("\n", `vendor/bin/drush pm:list`);
-        Log::data('modules', $result);
-        return true;
+        $json = json_decode(`vendor/bin/drush pm:list --format=json`);
+        chdir($cwd);
+        return $json;
     }
 }

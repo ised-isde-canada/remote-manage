@@ -9,6 +9,7 @@ namespace RemoteManage\Drupal;
 use RemoteManage\BaseSite;
 use RemoteManage\Log;
 use RemoteManage\SysCmd;
+use RemoteManage\Drush;
 
 class Site extends BaseSite
 {
@@ -120,5 +121,18 @@ class Site extends BaseSite
             }
         }
         return ($success == 0);
+    }
+
+    /**
+     * Project Module Listing.
+     * Results will be added to data for output.
+     *
+     * @return bool success
+     */
+    public function pmlist()
+    {
+        $drush = new Drush();
+        Log::data('modules', $drush->pmlist());
+        return true;
     }
 }

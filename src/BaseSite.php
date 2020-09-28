@@ -29,7 +29,7 @@ abstract class BaseSite
     public function __construct()
     {
         $this->cfg['homedir'] = getenv('HOME');
-        $this->cfg['tmpdir'] = sys_get_temp_dir() . '/' . uniqid();
+        $this->cfg['tmpdir'] = sys_get_temp_dir() . '/_rm_' . uniqid();
         $this->cfg['dbport'] = '5432';
         mkdir($this->cfg['tmpdir']);
     }
@@ -379,6 +379,15 @@ abstract class BaseSite
         }
 
         return true;
+    }
+
+    /**
+     * Project Module Listing.
+     * Implementation depends on application. Apps should override.
+     */
+    public function pmlist()
+    {
+        return false;
     }
 
     /**
