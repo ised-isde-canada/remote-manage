@@ -101,8 +101,7 @@ switch ($operation) {
         break;
 
     case 'pmlist':
-        $drush = new Drush();
-        $success = $drush->pmList();
+        $success = $site->pmList();
         break;
 
     case 's3list':
