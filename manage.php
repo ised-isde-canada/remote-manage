@@ -158,10 +158,9 @@ switch ($operation) {
 }
 
 // Stop timer and record elapsed time.
+$site->cleanup();
 Log::stopWatch('stop');
-
 Log::printData();
 
 // Complete execution.
-$site->cleanup();
 exit($success ? 0 : 1);
