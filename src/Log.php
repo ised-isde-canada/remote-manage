@@ -59,15 +59,17 @@ class Log
     }
 
     /**
-     * Set some data. Do not include a newline character at the end of your message!
+     * Set some data to be output as JSON when the program terminates.
+     * To ensure consistency, all data must have a unique key.
      *
-     * @param string $data  Array of data to be printed as output.
+     * @param string $key  A unique key
+     * @param array $data  The data
      *
      * @return null
      */
-    public static function data($data)
+    public static function data($key, $value)
     {
-        self::$data[] = $data;
+        self::$data[$key] = $value;
     }
 
     /**

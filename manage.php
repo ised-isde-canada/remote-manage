@@ -119,6 +119,7 @@ switch ($operation) {
             }
             $format = $option['format'];
         }
+        $volumes = [];
         foreach ($site->volumes as $volume) {
             // Get disk information.
             $disk = new DiskSpace($volume, $format);
@@ -127,15 +128,15 @@ switch ($operation) {
             if ($success === false) {
                 break;
             }
-            $diskspace = [
+            $volumes[] = [
                 'volume' => $volume,
                 'totalspace' => $disk->total,
                 'freespace' => $disk->free,
                 'usedspace' => $disk->used,
                 'usedpercentage' => $disk->percentage
             ];
-            Log::data($diskspace);
         }
+        Log::data('volumes', $volumes);
         break;
 
     case 'maint': // Set site in production mode.
@@ -148,9 +149,9 @@ switch ($operation) {
                 $success = $site->maintMode(false);
                 break;
             default: // If no parameter was specified, just return status.
-                Log::data($site->inMaintMode ? 'on' : 'off');
                 $success = true;
         }
+        Log::data('maintMode', $site->inMaintMode ? 'on' : 'off');
         break;
 
     default:
