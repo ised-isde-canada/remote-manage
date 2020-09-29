@@ -1,7 +1,7 @@
 <?php
 
 // Get the main operation
-$operation = $_REQUEST['op'] ?? '';
+$operation = $_REQUEST['operation'] ?? '';
 
 // Get the options and assemble into an array
 $options = [];
