@@ -10,5 +10,6 @@
     },
     "require": {
         "aws/aws-sdk-php": "^3.155"
-    }
+    },
+    "bin": "manage.php"
 }
