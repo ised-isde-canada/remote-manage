@@ -78,12 +78,16 @@ class Log
      *
      * @return null
      */
-    public static function printData()
+    public static function printData($status)
     {
         if (self::$errCount == 0) {
             if (is_array(self::$data)) {
                 self::msg('DATA:');
-                echo json_encode(self::$data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+                $json = ['status' => $status];
+                foreach (self::$data as $key => $value) {
+                    $json[$key] = $value;
+                }
+                echo json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
             }
         }
     }

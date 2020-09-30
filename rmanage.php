@@ -31,7 +31,7 @@ switch ($operation) {
         if ($job) {
             `$cmd backup > /tmp/rmanage_$job.log &`;
             $json = [
-                'status' => 'job started',
+                'status' => 'ok',
                 'job' => $job
             ];
         } else {
@@ -48,7 +48,7 @@ switch ($operation) {
         if ($job) {
             `$cmd restore $s3file > /tmp/rmanage_$job.log &`;
             $json = [
-                'status' => 'job started',
+                'status' => 'ok',
                 'job' => $job
             ];
         } else {
@@ -58,6 +58,7 @@ switch ($operation) {
 
     case 'query':
         $job = $_REQUEST['job'];
+        // TODO: Validate $job
         foreach (file("/tmp/rmanage_$job.log") as $rec) {
             $json['result'][] = trim($rec);
         }
@@ -111,7 +112,7 @@ function getJSONResult($result)
 {
     $result = trim($result);
     if ($result[0] == '[' OR $result[0] == '{') {
-        return ['data' => json_decode($result)];
+        return json_decode($result);
     }
     $messages = [];
     $jsonData = '';
@@ -127,12 +128,9 @@ function getJSONResult($result)
             $messages[] = $rec;
         }
     }
-    $json = null;
+    $json = json_decode($jsonData);
     if ($messages) {
-        $json['messages'] = $messages;
-    }
-    if ($jsonData != '') {
-        $json['data'] = json_decode($jsonData);
+        $json->messages = $messages;
     }
     return $json;
 }
