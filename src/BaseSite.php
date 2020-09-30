@@ -99,7 +99,7 @@ abstract class BaseSite
 
         // Transfer GZIP file to S3.
         if ($success) {
-            Log::msg('Transfering GZIP file to S3');
+            Log::msg('Transferring GZIP file to S3');
             $success = $this->copyToArchive();
         }
 
@@ -180,7 +180,7 @@ abstract class BaseSite
         $filename = $this->backupDir[$this->backupType] . '/' . $this->backupTarFile;
         $path = $this->cfg['tmpdir'] . '/' . $this->backupTarFile;
         $s3 = new S3Cmd();
-        Log::msg('Transfering to S3.');
+        Log::msg('Transferring to S3.');
         try {
             $s3->copy($filename, $path);
         }
