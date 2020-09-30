@@ -81,7 +81,11 @@ class Log
     public static function printData($status)
     {
         self::msg('DATA:');
-        $json = ['status' => $status];
+        $json = [
+            'status' => $status,
+            'start_time' => date('Y-m-d H:i:s', self::$startTime),
+            'end_time' => date('Y-m-d H:i:s', self::$endTime),
+        ];
         if (is_array(self::$data)) {
             foreach (self::$data as $key => $value) {
                 $json[$key] = $value;
@@ -109,7 +113,6 @@ class Log
                 self::msg('Job started at ' . date('H:i:s', self::$startTime) . ' and finished at ' . date('H:i:s', self::$endTime) . '.');
                 $seconds = self::$endTime - self::$startTime;
                 self::msg('Total execution time was ' . floor($seconds / 3600) . gmdate(':i:s', ($seconds % 3600)) . '.');
-                self::$startTime = null;
                 break;
             case 'time':
                 if (isset(self::$startTime)) {

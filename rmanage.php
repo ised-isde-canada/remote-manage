@@ -59,9 +59,7 @@ switch ($operation) {
     case 'query':
         $job = $_REQUEST['job'];
         // TODO: Validate $job
-        foreach (file("/tmp/rmanage_$job.log") as $rec) {
-            $json['result'][] = trim($rec);
-        }
+        $json = getJSONResult(file_get_contents("/tmp/rmanage_$job.log"));
         break;
 
     case 'maint':
