@@ -126,7 +126,7 @@ function getJSONResult($result)
             $messages[] = $rec;
         }
     }
-    $json = json_decode($jsonData);
+    $json = $jsonData ? json_decode($jsonData) : (object) [];
     if ($messages) {
         $json->messages = $messages;
     }
