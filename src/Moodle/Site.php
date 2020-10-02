@@ -69,6 +69,17 @@ class Site extends BaseSite
     }
 
     /**
+     * Get current maintenance mode status of site.
+     * Allow non-zero error codes and return output instead of error code.
+     * 
+     * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
+     */
+    public function getMaintMode() {
+        $output = SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, true, true);
+        return in_array('Status: enabled', $output);
+    }
+
+    /**
      * Take the site in or out of maintenance mode if not already in that mode.
      * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
      */
@@ -76,24 +87,24 @@ class Site extends BaseSite
     {
         $success = -1;
 
+        $inMaintMode = $this->getMaintMode();
+
         if ($maint) {
-            if (!$this->inMaintMode) {
+            if (!$inMaintMode) {
                 Log::msg("Entering maintenance mode");
                 // Enable maintenance mode.
                 $success = SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
                 // Purge all cache (no need to backup temp files).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
-                $this->inMaintMode = true;
             }
         }
         else {
-            if ($this->inMaintMode) {
+            if ($inMaintMode) {
                 Log::msg("Exiting maintenance mode");
                 // Purge all cache (in case we are doing a restore).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
                 // Disable maintenance mode.
                 $success = SysCmd::exec('php -f admin/cli/maintenance.php -- --disable', $this->cfg['homedir']);
-                $this->inMaintMode = false;
             }
         }
         return ($success == 0);

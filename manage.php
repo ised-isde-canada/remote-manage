@@ -150,7 +150,7 @@ switch ($operation) {
             default: // If no parameter, or an invalid parameter was specified, just return status.
                 $success = true;
         }
-        Log::data('maintMode', $site->inMaintMode ? 'on' : 'off');
+        Log::data('maintMode', $site->getMaintMode() ? 'on' : 'off');
         break;
 
     default:
@@ -158,7 +158,6 @@ switch ($operation) {
 }
 
 // Stop timer and record elapsed time.
-$site->cleanup();
 Log::stopWatch('stop');
 Log::printData($success ? 'ok' : 'error');
 

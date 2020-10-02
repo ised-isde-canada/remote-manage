@@ -15,7 +15,6 @@ abstract class BaseSite
     public    $cfg = [];                 // Configuration data
     public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
     public    $siteExists = null;        // Flag to indicate if the site already exists or will be newly created
-    public    $inMaintMode = false;      // Flag to indicate whether or not the site is in maintenance mode
     private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time)
     private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
     private   $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly)
@@ -248,7 +247,7 @@ abstract class BaseSite
         // Remove the temporary directory
         SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
 
-        if ($this->inMaintMode) {
+        if ($this->getMaintMode()) {
             // Take site out of maintenance mode
             $this->maintMode(false);
         }
@@ -269,16 +268,22 @@ abstract class BaseSite
     }
 
     /**
+     * Get current maintenance mode status of site.
+     * 
+     * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
+     */
+    abstract public function getMaintMode();
+
+    /**
      * Take the site in or out of maintenance mode.
      * NOTE: The class which extends this base class must
-     * define how maintMode is implemented. It should also
-     * maintain the state of $this->inMaintMode.
+     * define how maintMode is implemented.
      *
      * @param boolean $maint In maintenance mode (true), otherwise false.
      *
      * @return boolean $success Successful (true), failed (false).
      */
-    abstract public function maintMode($maint=true);
+    abstract public function maintMode($maint = true);
 
     /**
      * Delete files within persistent volumes, without deleting

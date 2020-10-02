@@ -38,7 +38,7 @@ class Site extends BaseSite
 
         if ($this->siteExists) {
             // Get current maintenance mode status.
-            $this->inMaintMode = SysCmd::exec($this->cfg['drush'] . ' state:get system.maintenance_mode', false, true);
+            $this->getMaintMode();
         }
     }
 
@@ -93,6 +93,16 @@ class Site extends BaseSite
     }
 
     /**
+     * Get current maintenance mode status of site.
+     * 
+     * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
+     */
+    public function getMaintMode() {
+        $status = SysCmd::exec($this->cfg['drush'] . ' state:get system.maintenance_mode', false, true);
+        return $status;
+    }
+
+    /**
      * Take the site in or out of maintenance mode if not already in that mode.
      * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
      */
@@ -100,24 +110,25 @@ class Site extends BaseSite
     {
         $success = -1;
 
+        // Get current maintenance mode status.
+        $inMaintMode = $this->getMaintMode();
+
         if ($maint) {
-            if (!$this->inMaintMode) {
+            if (!$inMaintMode) {
                 Log::msg("Enter Drupal maintenance mode");
                 // Enable maintenance mode.
-                $success = SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 1 --input-format=integer', $this->cfg['homedir']);
+                $success = SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode TRUE', $this->cfg['homedir']);
                 // Rebuild cache (no need to backup temp files).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
-                $this->inMaintMode = true;
             }
         }
         else {
-            if ($this->inMaintMode) {
+            if ($inMaintMode) {
                 Log::msg("Exit Drupal maintenance mode");
                 // Rebuild cache (in case we are doing a restore).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
                 // Disable maintenance mode.
-                $success = SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode 0 --input-format=integer', $this->cfg['homedir']);
-                $this->inMaintMode = false;
+                $success = SysCmd::exec($this->cfg['drush'] . ' state:set system.maintenance_mode FALSE', $this->cfg['homedir']);
             }
         }
         return ($success == 0);
