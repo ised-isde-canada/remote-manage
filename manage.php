@@ -150,7 +150,8 @@ switch ($operation) {
             default: // If no parameter, or an invalid parameter was specified, just return status.
                 $success = true;
         }
-        Log::data('maintMode', $site->getMaintMode() ? 'on' : 'off');
+        $inMaintMode = $site->getMaintMode();
+        Log::data('maintMode', $inMaintMode? 'on' : 'off');
         break;
 
     default:

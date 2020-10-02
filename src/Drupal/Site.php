@@ -98,8 +98,7 @@ class Site extends BaseSite
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     public function getMaintMode() {
-        $status = SysCmd::exec($this->cfg['drush'] . ' state:get system.maintenance_mode', false, true);
-        return $status;
+        return exec($this->cfg['drush'] . ' state:get system.maintenance_mode');
     }
 
     /**
