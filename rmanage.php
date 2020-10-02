@@ -19,7 +19,7 @@ $job = (isset($_REQUEST['job']) && $_REQUEST['job'] == 'true') ? getmypid() : nu
 $json = [];
 
 // Assemble the basic command to run
-$cmd = 'php /opt/app-root/src/vendor/ised/remote-manage/manage.php';
+$cmd = 'php ' . dirname(__FILE__) . '/manage.php';
 
 if ($options) {
     $cmd .= ' ' . join(' ', $options);
@@ -126,7 +126,7 @@ function getJSONResult($result)
             $messages[] = $rec;
         }
     }
-    $json = json_decode($jsonData);
+    $json = $jsonData ? json_decode($jsonData) : (object) [];
     if ($messages) {
         $json->messages = $messages;
     }
