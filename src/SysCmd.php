@@ -37,7 +37,7 @@ class SysCmd
             Log::msg($msg);
         }
 
-        if ($rc !== 0 && !$allowErrors) {
+        if (!empty($rc) && !$allowErrors) {
             // We will throw an exception after restoring the current directory.
             Log::error("Command $cmd execution failure. Return code=$rc");
         }
@@ -49,7 +49,7 @@ class SysCmd
         }
 
         // On error, throw an exception.
-        if ($rc !== 0 && !$allowErrors) {
+        if (!empty($rc) && !$allowErrors) {
             throw new \Exception("Command $cmd execution failure. Return code=$rc");
         }
 
