@@ -31,12 +31,6 @@ class Site extends BaseSite
 
         // Check for existing Moodle site installation
         $this->siteExists = $this->isInstalled();
-
-        if ($this->siteExists) {
-            // Get current maintenance mode status. Allow non-zero error codes and return output instead of error code.
-            $output = SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, true, true);
-            $this->inMaintMode = in_array('Status: enabled', $output);
-        }
     }
 
     /**
@@ -71,7 +65,7 @@ class Site extends BaseSite
     /**
      * Get current maintenance mode status of site.
      * Allow non-zero error codes and return output instead of error code.
-     * 
+     *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     public function getMaintMode() {

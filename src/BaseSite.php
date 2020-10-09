@@ -15,6 +15,7 @@ abstract class BaseSite
     public    $cfg = [];                 // Configuration data
     public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
     public    $siteExists = null;        // Flag to indicate if the site already exists or will be newly created
+    public    $restoreMaintMode = null;  // If set, cleanup process will restore the maintenace mode to this state
     private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time)
     private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
     private   $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly)
@@ -68,6 +69,7 @@ abstract class BaseSite
 
         // Put site into maintenance mode.
         if ($this->siteExists) {
+            $this->restoreMaintMode = $this->getMaintMode(); // Remember initial setting
             $this->maintMode(true);
         }
 
@@ -247,9 +249,11 @@ abstract class BaseSite
         // Remove the temporary directory
         SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
 
-        if ($this->getMaintMode()) {
-            // Take site out of maintenance mode
-            $this->maintMode(false);
+        // If requested, put the site back in initial maintenance mode state
+        if ($this->restoreMaintMode !== null) {
+            if ($this->getMaintMode() != $this->initialMaintMode) {
+                $this->maintMode($this->restoreMaintMode);
+            }
         }
 
         return true;
@@ -269,7 +273,7 @@ abstract class BaseSite
 
     /**
      * Get current maintenance mode status of site.
-     * 
+     *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     abstract public function getMaintMode();
@@ -317,6 +321,7 @@ abstract class BaseSite
 
         // Put site into maintenance mode.
         if ($this->siteExists) {
+            $this->restoreMaintMode = $this->getMaintMode(); // Remember initial setting
             $this->maintMode(true);
         }
 

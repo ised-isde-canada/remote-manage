@@ -18,7 +18,8 @@ class Site extends BaseSite
         parent::__construct();
 
         $this->siteType = 'drupal';
-        $this->sitesDir = $this->cfg['homedir'] . '/data';
+        $this->dataDir = $this->cfg['homedir'] . '/data';
+        $this->sitesDir = $this->dataDir . '/sites/default';
 
         // Set the database configuration parameters.
         $this->cfg['dbhost'] = getenv('DB_HOST');
@@ -28,18 +29,13 @@ class Site extends BaseSite
         $this->cfg['dbname'] = getenv('DB_NAME');
 
         // Define the volumes for backup and restore (must use absolute path).
-        $this->volumes = [$this->sitesDir];
+        $this->volumes = [$this->dataDir];
 
         // Set app-specific configuration parameters.
         $this->cfg['drush'] = $this->cfg['homedir'] . '/vendor/bin/drush';
 
         // Check for existing Drupal site installation.
         $this->siteExists = $this->isInstalled();
-
-        if ($this->siteExists) {
-            // Get current maintenance mode status.
-            $this->getMaintMode();
-        }
     }
 
     /**
@@ -94,7 +90,7 @@ class Site extends BaseSite
 
     /**
      * Get current maintenance mode status of site.
-     * 
+     *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     public function getMaintMode() {
