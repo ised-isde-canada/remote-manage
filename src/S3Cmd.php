@@ -21,29 +21,18 @@ class S3Cmd
 
     public function __construct()
     {
-        if (!getenv('AWS_ACCESS_KEY_ID')) {
-            $this->error = true;
-            Log::error('AWS_ACCESS_KEY_ID environment variable is not set.');
-        }
-        if (!getenv('AWS_SECRET_ACCESS_KEY')) {
-            $this->error = true;
-            Log::error('AWS_SECRET_ACCESS_KEY environment variable is not set.');
-        }
-        if (! $this->s3_bucket = getenv('AWS_S3_BUCKET')) {
-            $this->error = true;
-            Log::error('AWS_S3_BUCKET environment variable is not set.');
-        }
-        if (! $this->s3_region = getenv('AWS_S3_REGION')) {
-            $this->error = true;
-            Log::error('AWS_S3_REGION environment variable is not set.');
-        }
-        Log::msg("s3_bucket is $this->s3_bucket");
-        Log::msg("s3_region is $this->s3_region");
+        // Check to make sure we have S3 credentials available
+        $this->error = !self::checkCredentials();
 
-        $this->s3 = new S3Client([
-            'version' => 'latest',
-            'region'  => $this->s3_region,
-        ]);
+        if (!$this->error) {
+            Log::msg("s3_bucket is $this->s3_bucket");
+            Log::msg("s3_region is $this->s3_region");
+
+            $this->s3 = new S3Client([
+                'version' => 'latest',
+                'region'  => $this->s3_region
+            ]);
+        }
     }
 
     /**
@@ -63,54 +52,47 @@ class S3Cmd
 
     public function getList()
     {
-        // Check to make sure we have S3 credentials available
-        if (!self::checkCredentials()) {
+        if ($this->error) {
             return false;
         }
 
-        if (!$this->error) {
-            try {
-                $result = $this->s3->listObjectsV2([
-                    'Bucket' => $this->s3_bucket
-                ]);
-            }
-            catch (S3Exception $e) {
-                Log::msg('S3 Exception on listObjectsV2!');
-                return false;
-            }
-
-            $files = [];
-            for ($n = 0; $n <sizeof($result['Contents']); $n++) {
-                $files[] = [
-                    'filename' => $result['Contents'][$n]['Key'],
-                    'size' => $result['Contents'][$n]['Size'],
-                    'modified' => $result['Contents'][$n]['LastModified']
-                ];
-            }
-            Log::data('files', $files);
-        } else {
-            Log::error('Unable to execute getList() - error flagged on S3Cmd::__construct');
+        try {
+            $result = $this->s3->listObjectsV2([
+                'Bucket' => $this->s3_bucket
+            ]);
+        }
+        catch (S3Exception $e) {
+            Log::msg('S3 Exception on listObjectsV2!');
             return false;
         }
+
+        $files = [];
+        for ($n = 0; $n <sizeof($result['Contents']); $n++) {
+            $files[] = [
+                'filename' => $result['Contents'][$n]['Key'],
+                'size' => $result['Contents'][$n]['Size'],
+                'modified' => $result['Contents'][$n]['LastModified']
+            ];
+        }
+        Log::data('files', $files);
 
         return true;
     }
 
     public function copy($filename, $path)
     {
-        if (!$this->error) {
-            $uploader = new MultipartUploader($this->s3, $path, [
-                'bucket' => $this->s3_bucket,
-                'key'    => $filename
-            ]);
-            try {
-                $result = $uploader->upload();
-            } catch (MultipartUploadException $e) {
-                Log::error('S3Exception on multipart upload!');
-                return false;
-            }
-        } else {
-            Log::error('Unable to execute copy() - error flagged on S3Cmd::__construct');
+        if ($this->error) {
+            return false;
+        }
+
+        $uploader = new MultipartUploader($this->s3, $path, [
+            'bucket' => $this->s3_bucket,
+            'key'    => $filename
+        ]);
+        try {
+            $result = $uploader->upload();
+        } catch (MultipartUploadException $e) {
+            Log::error('S3Exception on multipart upload!');
             return false;
         }
 
@@ -119,29 +101,29 @@ class S3Cmd
 
     public function getFile($filename, $path)
     {
-        if (!$this->error) {
-            // Check if file exists.
-            if (!$this->s3->doesObjectExist($this->s3_bucket, $filename)) {
-                Log::error('S3 file not found: ' . $filename);
-                return false;
-            }
-
-            // If file exists, download it.
-            try {
-                $result = $this->s3->getObject([
-                    'Bucket' => $this->s3_bucket,
-                    'Key'    => $filename,
-                    'SaveAs' => $path,
-                ]);
-            }
-            catch(S3Exception $e) {
-                Log::error('S3 failed to retrieve file.');
-                return false;
-            }
-        } else {
-            Log::error('Unable to execute getFile() - error flagged on S3Cmd::__construct');
+        if ($this->error) {
             return false;
         }
+
+        // Check if file exists.
+        if (!$this->s3->doesObjectExist($this->s3_bucket, $filename)) {
+            Log::error('S3 file not found: ' . $filename);
+            return false;
+        }
+
+        // If file exists, download it.
+        try {
+            $result = $this->s3->getObject([
+                'Bucket' => $this->s3_bucket,
+                'Key'    => $filename,
+                'SaveAs' => $path,
+            ]);
+        }
+        catch(S3Exception $e) {
+            Log::error('S3 failed to retrieve file.');
+            return false;
+        }
+
         return true;
     }
 }
