@@ -69,8 +69,14 @@ class Site extends BaseSite
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     public function getMaintMode() {
-        $output = SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, false, true);
-        return in_array('Status: enabled', $output);
+        if ($this->isInstalled()) {
+            $output = SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, false, true);
+            return in_array('Status: enabled', $output);
+        }
+        if (file_exists($this->cfg['moodledata'] . '/climaintenance.html')) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -90,15 +96,23 @@ class Site extends BaseSite
                 $success = SysCmd::exec('cp ' . dirname(__FILE__) . '/climaintenance.html .', $this->cfg['moodledata']);
                 // Purge all cache (no need to backup temp files).
                 SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
+            } else {
+                $success = 0;
             }
         }
         else {
             if ($inMaintMode) {
                 Log::msg("Exiting maintenance mode");
-                // Purge all cache (in case we are doing a restore).
-                SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
-                // Disable maintenance mode.
-                $success = SysCmd::exec('php -f admin/cli/maintenance.php -- --disable', $this->cfg['homedir']);
+                if ($this->isInstalled()) {
+                    // Purge all cache (in case we are doing a restore).
+                    SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
+                    // Disable maintenance mode.
+                    $success = SysCmd::exec('php -f admin/cli/maintenance.php -- --disable', $this->cfg['homedir']);
+                } else {
+                    $success = SysCmd::exec('rm ' . $this->cfg['moodledata'] . '/climaintenance.html');
+                }
+            } else {
+                $success = 0;
             }
         }
         return ($success == 0);
