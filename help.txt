@@ -1,18 +1,41 @@
-Manage v1.0 - July 2020
+NAME
+    Manage v2.0 - October 2020
 
-Written by: Duncan Sutter, Samantha Tripp and Michael Milette
-Purpose: Backup or restore a website
-Example: php manage.php --backup
+SYNOPSIS
+    php manage.php <option> [command] <parameter>
 
-Must specify only one of the following parameters first:
---backup | -b                 Backup this site.
---delete                      Delete database and persistent volumne files.
---help | -h                   Display this information.
---maint | -m = [on/off]       Set site in maintenance (on), prod (off) mode.
-                              If neither is spacified, will return current state.
---restore | -r = [filename]   Restore the specified backup file.
---s3list | -l                 List available backups.
---space | -s                  List disk space information.
-May be combined with others:
---verbose | -v                Display additional information during execution.
---format | -f = [bytes/human] Format file sizes. Default is in bytes (CLI in human)
+DESCRIPTION
+    Backup or restore a website
+
+COMMANDS
+    You must specify only one of the following commands:
+
+    backup                 Backup this site.
+    delete                 Delete database and persistent volumne files.
+    help                   Display this information.
+    maint [on/off]         Set site in maintenance (on), prod (off) mode.
+                           If neither is spacified, will return current state.
+    restore <filename>     Restore the specified backup file.
+    s3list                 List available backups.
+    space                  List disk space information.
+
+    Option:
+
+    --verbose              Display additional information during execution.
+    --format=[bytes/human] Format file sizes. Default is in bytes (CLI in human)
+
+EXAMPLES
+
+    php manage.php backup
+    php manage.php delete
+    php manage.php help
+    php manage.php maint
+    php manage.php maint on
+    php manage.php restore filename.tar.gz
+    php manage.php s3list
+    php manage.php space
+    php manage.php --format=bytes space
+
+AUTHORS
+
+    Duncan Sutter, Samantha Tripp and Michael Milette
