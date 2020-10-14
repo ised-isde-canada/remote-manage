@@ -19,6 +19,7 @@ COMMANDS
     restore <filename>     Restore the specified backup file.
     s3list                 List available backups.
     space                  List disk space information.
+    app-name               Display the name of this application.
 
     Option:
 
@@ -35,6 +36,7 @@ EXAMPLES
     php manage.php s3list
     php manage.php space
     php manage.php --format=bytes space
+    php manage.php app-name
 
 AUTHORS
     Duncan Sutter, Samantha Tripp and Michael Milette
