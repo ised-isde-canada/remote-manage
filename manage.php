@@ -96,6 +96,10 @@ switch ($operation) {
         break;
 
     case 'delete':
+        $appname = array_shift($opArgs);
+        if ($appname != $site->appEnv) {
+            Log::exitError('Invalid or missing app-name. Are you sure that you are on the right server? This is ' . $site->appEnv);
+        }
         $site->dropTables(); // No status check because it might have already been empty.
         $success = $site->deleteFiles();
         break;

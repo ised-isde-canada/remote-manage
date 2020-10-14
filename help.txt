@@ -11,7 +11,8 @@ COMMANDS
     You must specify only one of the following commands:
 
     backup                 Backup this site.
-    delete                 Delete database and persistent volumne files.
+    delete <app-name>      Delete database and persistent volumne files.
+                           Specified app-name must match the current system's app-name.
     help                   Display this information.
     maint [on/off]         Set site in maintenance (on), prod (off) mode.
                            If neither is spacified, will return current state.
@@ -25,9 +26,8 @@ COMMANDS
     --format=[bytes/human] Format file sizes. Default is in bytes (CLI in human)
 
 EXAMPLES
-
     php manage.php backup
-    php manage.php delete
+    php manage.php delete learning-sandbox
     php manage.php help
     php manage.php maint
     php manage.php maint on
@@ -37,5 +37,5 @@ EXAMPLES
     php manage.php --format=bytes space
 
 AUTHORS
-
     Duncan Sutter, Samantha Tripp and Michael Milette
+
