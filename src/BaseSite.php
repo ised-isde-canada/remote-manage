@@ -502,7 +502,7 @@ abstract class BaseSite
             }
 
             try {
-                $cmd = sprintf('rsync -a --omit-dir-times --no-g --no-perms %s %s', $backupDir . '/', $volume . '/');
+                $cmd = sprintf('rsync -a --delete --omit-dir-times --no-g --no-perms %s %s', $backupDir . '/', $volume . '/');
                 SysCmd::exec($cmd, $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
