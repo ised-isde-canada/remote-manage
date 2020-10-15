@@ -74,10 +74,10 @@ abstract class BaseSite
         }
 
         // Fails if there is neither a database or directories to be backed-up.
-        $success = (empty($this->cfg['dbname']) && empty($this->volumes));
+        $success = !(empty($this->cfg['dbname']) && empty($this->volumes));
 
         // Backup database, if any.
-        if (!empty($this->cfg['dbname'])) {
+        if ($success && !empty($this->cfg['dbname'])) {
             $success = $this->backupDatabase();
         }
 
@@ -327,7 +327,7 @@ abstract class BaseSite
         }
 
         // Fails if there is neither a database or directories to be restored.
-        $success = (empty($this->cfg['dbname']) && empty($this->volumes));
+        $success = !(empty($this->cfg['dbname']) && empty($this->volumes));
 
         // Get selected backup archive from S3 bucket.
         if ($success) {
