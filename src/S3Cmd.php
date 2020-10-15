@@ -25,7 +25,9 @@ class S3Cmd
         $this->error = !self::checkCredentials();
 
         if (!$this->error) {
+            $this->s3_bucket = getenv('AWS_S3_BUCKET');
             Log::msg("s3_bucket is $this->s3_bucket");
+            $this->s3_region = getenv('AWS_S3_REGION');
             Log::msg("s3_region is $this->s3_region");
 
             $this->s3 = new S3Client([
@@ -40,11 +42,14 @@ class S3Cmd
      */
     public static function checkCredentials()
     {
-        $success = true;
-        foreach (['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_S3_BUCKET', 'AWS_S3_REGION'] as $evar) {
-            if (!getenv($evar)) {
-                Log::error("$evar missing.");
-                $success = false;
+        static $success = -99;
+        if ($success == -99) {
+            $success = true;
+            foreach (['AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_S3_BUCKET', 'AWS_S3_REGION'] as $evar) {
+                if (empty(getenv($evar))) {
+                    Log::error("$evar missing.");
+                    $success = false;
+                }
             }
         }
         return $success;
@@ -52,7 +57,7 @@ class S3Cmd
 
     public function getList()
     {
-        if ($this->error) {
+        if (!self::checkCredentials()) {
             return false;
         }
 
@@ -81,7 +86,7 @@ class S3Cmd
 
     public function copy($filename, $path)
     {
-        if ($this->error) {
+        if (!self::checkCredentials()) {
             return false;
         }
 
@@ -101,7 +106,7 @@ class S3Cmd
 
     public function getFile($filename, $path)
     {
-        if ($this->error) {
+        if (!self::checkCredentials()) {
             return false;
         }
 
