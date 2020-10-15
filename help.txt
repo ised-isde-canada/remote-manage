@@ -17,7 +17,7 @@ COMMANDS
     maint [on/off]         Set site in maintenance (on), prod (off) mode.
                            If neither is spacified, will return current state.
     restore <filename>     Restore the specified backup file.
-    s3list                 List available backups.
+    s3list [filter]        List available backups. Optional filename substring filter.
     space                  List disk space information.
     app-name               Display the name of this application.
 

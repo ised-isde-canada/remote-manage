@@ -114,8 +114,9 @@ switch ($operation) {
         break;
 
     case 's3list':
+        $filter = array_shift($opArgs);
         $s3 = new S3Cmd();
-        $success = $s3->getList();
+        $success = $s3->getList($filter);
         break;
 
     case 'space': // Disk space information.
