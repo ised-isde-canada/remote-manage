@@ -45,6 +45,7 @@ switch ($operation) {
             break;
         }
         getS3Credentials();
+        $s3file = $_REQUEST['s3file'];
         if ($job) {
             `$cmd restore $s3file > /tmp/rmanage_$job.log &`;
             $json = [
