@@ -251,7 +251,7 @@ abstract class BaseSite
 
         // If requested, put the site back in initial maintenance mode state
         if ($this->restoreMaintMode !== null) {
-            if ($this->getMaintMode() != $this->initialMaintMode) {
+            if ($this->getMaintMode() != $this->restoreMaintMode) {
                 $this->maintMode($this->restoreMaintMode);
             }
         }
