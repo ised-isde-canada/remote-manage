@@ -65,12 +65,17 @@ class Site extends BaseSite
     /**
      * Get current maintenance mode status of site.
      * Allow non-zero error codes and return output instead of error code.
+     * 
+     * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
      *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     public function getMaintMode($restoreStatus = false) {
         if ($this->isInstalled()) {
             $output = SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, false, true);
+            if ($restoreStatus) {
+                $this->restoreMaintMode = in_array('Status: enabled', $output);
+            }
             return in_array('Status: enabled', $output);
         }
         if (file_exists($this->cfg['moodledata'] . '/climaintenance.html')) {
@@ -81,7 +86,11 @@ class Site extends BaseSite
 
     /**
      * Take the site in or out of maintenance mode if not already in that mode.
+     * 
      * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
+     * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
+     * 
+     * @return boolean $success Successful (true), failed (false).
      */
     public function maintMode($maint = true, $restoreStatus = false)
     {
