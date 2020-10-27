@@ -48,12 +48,25 @@ class Site extends BaseSite
     }
 
     /**
-     * Determine if a Drupal site is installed by locating the settings.php file.
+     * Determine if a Drupal site is installed by determining if a database is connected.
      * @return boolean If Drupal installation exists (true), or not (false).
      */
     public function isInstalled()
     {
-        return file_exists($this->sitesDir . '/settings.php');
+        // Old method - check settings.php
+        //return file_exists($this->sitesDir . '/settings.php');
+
+        // Check drush status for Database : Connected
+        $status = SysCmd::exec($this->cfg['drush'] . ' status', $this->cfg['homedir'], true, true);
+
+        foreach ($status as $str) {
+            if (preg_match ('/^\s+Database\s+:\s+Connected/', $str)){
+                Log::msg("Database connected.");
+                return true;
+            }
+        }
+        Log::msg("Database not connected.");
+        return false;
     }
 
 
