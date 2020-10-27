@@ -103,24 +103,33 @@ class Site extends BaseSite
 
     /**
      * Get current maintenance mode status of site.
+     * 
+     * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
      *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
-    public function getMaintMode() {
+    public function getMaintMode($restoreStatus = false) {
         $output = SysCmd::exec($this->cfg['drush'] . ' state:get system.maintenance_mode', $this->cfg['homedir'], true, true);
+        if ($restoreStatus) $this->restoreMaintMode = $output[0];
         return $output[0];
     }
 
     /**
-     * Take the site in or out of maintenance mode if not already in that mode.
-     * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
+     * Take the site in or out of maintenance mode.
+     * NOTE: The class which extends this base class must
+     * define how maintMode is implemented.
+     *
+     * @param boolean $maint In maintenance mode (true), otherwise false.
+     * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
+     *
+     * @return boolean $success Successful (true), failed (false).
      */
-    public function maintMode($maint = true)
+    public function maintMode($maint = true, $restoreStatus = false)
     {
         $success = -1;
 
         // Get current maintenance mode status.
-        $inMaintMode = $this->getMaintMode();
+        $inMaintMode = $this->getMaintMode($restoreStatus);
 
         if ($maint) {
             if (!$inMaintMode) {

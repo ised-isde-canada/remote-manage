@@ -67,10 +67,9 @@ abstract class BaseSite
             $this->backupType
         );
 
-        // Put site into maintenance mode.
+        // Put site into maintenance mode - preserve original status
         if ($this->siteExists) {
-            $this->restoreMaintMode = $this->getMaintMode(); // Remember initial setting
-            $this->maintMode(true);
+            $this->maintMode(true, true);
         }
 
         // Fails if there is neither a database or directories to be backed-up.
@@ -251,9 +250,8 @@ abstract class BaseSite
 
         // If requested, put the site back in initial maintenance mode state
         if ($this->restoreMaintMode !== null) {
-            if ($this->getMaintMode() != $this->restoreMaintMode) {
-                $this->maintMode($this->restoreMaintMode);
-            }
+            Log::msg("Restoring original maintenance mode status...");
+            $this->maintMode($this->restoreMaintMode); 
         }
 
         return true;
@@ -273,10 +271,12 @@ abstract class BaseSite
 
     /**
      * Get current maintenance mode status of site.
+     * 
+     * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
      *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
-    abstract public function getMaintMode();
+    abstract public function getMaintMode($restoreStatus = false);
 
     /**
      * Take the site in or out of maintenance mode.
@@ -284,10 +284,11 @@ abstract class BaseSite
      * define how maintMode is implemented.
      *
      * @param boolean $maint In maintenance mode (true), otherwise false.
+     * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
      *
      * @return boolean $success Successful (true), failed (false).
      */
-    abstract public function maintMode($maint = true);
+    abstract public function maintMode($maint = true, $restoreStatus = false);
 
     /**
      * Delete files within persistent volumes, without deleting
@@ -322,7 +323,6 @@ abstract class BaseSite
 
         // Put site into maintenance mode.
         if ($this->siteExists) {
-            $this->restoreMaintMode = $this->getMaintMode(); // Remember initial setting
             $this->maintMode(true);
         }
 

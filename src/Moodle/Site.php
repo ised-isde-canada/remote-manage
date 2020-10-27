@@ -68,7 +68,7 @@ class Site extends BaseSite
      *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
-    public function getMaintMode() {
+    public function getMaintMode($restoreStatus = false) {
         if ($this->isInstalled()) {
             $output = SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, false, true);
             return in_array('Status: enabled', $output);
@@ -83,11 +83,11 @@ class Site extends BaseSite
      * Take the site in or out of maintenance mode if not already in that mode.
      * @param boolean $maint Enable (true) or Disable (false) Maintenance Mode.
      */
-    public function maintMode($maint = true)
+    public function maintMode($maint = true, $restoreStatus = false)
     {
         $success = -1;
 
-        $inMaintMode = $this->getMaintMode();
+        $inMaintMode = $this->getMaintMode($restoreStatus);
 
         if ($maint) {
             if (!$inMaintMode) {
