@@ -246,7 +246,10 @@ abstract class BaseSite
     public function cleanup()
     {
         // Remove the temporary directory
-        SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
+        if (is_dir($this->cfg['tmpdir'])) {
+            SysCmd::exec('chmod -R u+w ' . $this->cfg['tmpdir']);
+            SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
+        }
 
         // If requested, put the site back in initial maintenance mode state
         if ($this->restoreMaintMode !== null) {
