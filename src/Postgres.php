@@ -113,6 +113,41 @@ class Postgres
     }
 
     /**
+     * Returns the number of tables in the database.
+     *
+     * @param array $db Associative array of database connection parameters.
+     *
+     * @return integer Tables in the database. -1 if could not connect.
+     */
+    function dbTableCount($db){
+        // Establish conection to database.
+        $conn = @pg_connect(sprintf('host=%s port=%s dbname=%s user=%s password=%s',
+            $db['host'],
+            $db['port'],
+            $db['name'],
+            $db['user'],
+            $db['pass']
+        ));
+        if ($conn === false) {
+            return -1;
+        }
+
+        try{
+            // Count number of tables in the database.
+            $results = @pg_query($conn, "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;");
+            if ($results !== false) {
+                $tableCount = pg_num_rows($results);
+            } else {
+                $tableCount = 0;
+            }
+            pg_close($conn);
+        } catch (PDOException $e){
+            $tableCount = 0;
+        }
+        return $tableCount;
+    }
+
+    /**
      * Create the .pgpass file which holds the database credentials.
      * @param array $db
      */
