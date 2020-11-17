@@ -9,6 +9,7 @@ namespace RemoteManage\Moodle;
 use RemoteManage\BaseSite;
 use RemoteManage\Log;
 use RemoteManage\SysCmd;
+use RemoteManage\Postgres;
 
 class Site extends BaseSite
 {
@@ -51,7 +52,15 @@ class Site extends BaseSite
         // Check if mooodledata contains files.
         $installed = file_exists($this->cfg['moodledata'] . '/.htaccess');
         // Check for over 200 tables in case database is pre-populated.
-        $installed = $installed && (dbTableCount($db) > 200);
+        $db = new Postgres();
+        $installed = $installed && $db->dbTableCount([
+            'host' => $this->cfg['dbhost'],
+            'port' => $this->cfg['dbport'],
+            'user' => $this->cfg['dbuser'],
+            'pass' => $this->cfg['dbpass'],
+            'name' => $this->cfg['dbname'],
+        ]) > 200;
+        return $installed;
     }
 
     /**

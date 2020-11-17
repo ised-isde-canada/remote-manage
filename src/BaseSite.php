@@ -246,12 +246,15 @@ abstract class BaseSite
     public function cleanup()
     {
         // Remove the temporary directory
-        SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
+        if (is_dir($this->cfg['tmpdir'])) {
+            SysCmd::exec('chmod -R u+w ' . $this->cfg['tmpdir']);
+            SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
+        }
 
         // If requested, put the site back in initial maintenance mode state
-        if ($this->restoreMaintMode !== null) {
+        if ($this->MaintMode !== null) {
             Log::msg("Restoring original maintenance mode status...");
-            $this->maintMode($this->restoreMaintMode); 
+            $this->maintMode($this->restoreMaintMode);
         }
 
         return true;
@@ -271,7 +274,7 @@ abstract class BaseSite
 
     /**
      * Get current maintenance mode status of site.
-     * 
+     *
      * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
      *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
