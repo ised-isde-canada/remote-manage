@@ -1,13 +1,32 @@
 <?php
-
 /**
  * Base class to be extended by a site type.
+ *
+ * @category BaseSite
+ * @package  Remote-manage
+ * @author   Duncan Sutter <dsutter@qualivera.com>
+ * @author   sam-tripp <samantha.tripp@canada.ca>
+ * @author   Michael Milette <michael.milette@tngconsulting.ca>
+ * @license  Copyright 2020. License to be determined.
+ * @link     https://github.com/ised-isde-canada/remote-manage
+ * PHP version 7
  */
 
 namespace RemoteManage;
 
 use Exception;
 
+/**
+ * BaseSite class.
+ *
+ * @category BaseSite
+ * @package  Remote-manage
+ * @author   Duncan Sutter <dsutter@qualivera.com>
+ * @author   sam-tripp <samantha.tripp@canada.ca>
+ * @author   Michael Milette <michael.milette@tngconsulting.ca>
+ * @license  Copyright 2020. License to be determined.
+ * @link     https://github.com/ised-isde-canada/remote-manage
+ */
 abstract class BaseSite
 {
     public    $siteType = 'unknown';     // The type of site. Use all lowercase
@@ -37,8 +56,6 @@ abstract class BaseSite
     /**
      * Backup a site.
      * Will abort if any part of the backup fails.
-     *
-     * @param $startTime integer Time script was started.
      *
      * @return boolean Success (true), Failure (false).
      */
@@ -249,6 +266,12 @@ abstract class BaseSite
         if (is_dir($this->cfg['tmpdir'])) {
             SysCmd::exec('chmod -R u+w ' . $this->cfg['tmpdir']);
             SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
+            // HACK attempts to resolve timing issue... but we will only wait so long.
+            $i = 0;
+            while (is_dir($this->cfg['tmpdir']) && $i < 60) { // Less than 60 seconds.
+                sleep(1);
+                $i++;
+            }
         }
 
         // If requested, put the site back in initial maintenance mode state
@@ -286,7 +309,7 @@ abstract class BaseSite
      * NOTE: The class which extends this base class must
      * define how maintMode is implemented.
      *
-     * @param boolean $maint In maintenance mode (true), otherwise false.
+     * @param boolean $maint         In maintenance mode (true), otherwise false.
      * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
      *
      * @return boolean $success Successful (true), failed (false).
@@ -304,8 +327,7 @@ abstract class BaseSite
     /**
      * Restore a site, using parameters provided in the POST and local configuration.
      *
-     * @param integer $startTime  Start time in epoch time.
-     * @param string  $backupFile Name of the backup file we are restoring.
+     * @param string $backupFile Name of the backup file we are restoring.
      *
      * @return boolean
      */
@@ -398,6 +420,8 @@ abstract class BaseSite
     /**
      * Project Module Listing.
      * Implementation depends on application. Apps should override.
+     *
+     * @return boolean Always returns false.
      */
     public function pmlist()
     {
