@@ -30,10 +30,7 @@ switch ($operation) {
         getS3Credentials();
         if ($job) {
             `$cmd backup > /tmp/rmanage_$job.log &`;
-            $json = [
-                'status' => 'ok',
-                'job' => $job
-            ];
+            $json = ['status' => 'ok', 'job' => $job];
         } else {
             $json = getJSONResult(`$cmd backup`);
         }
@@ -48,10 +45,7 @@ switch ($operation) {
         $s3file = $_REQUEST['s3file'];
         if ($job) {
             `$cmd restore $s3file > /tmp/rmanage_$job.log &`;
-            $json = [
-                'status' => 'ok',
-                'job' => $job
-            ];
+            $json = ['status' => 'ok', 'job' => $job];
         } else {
             $json = getJSONResult(`$cmd restore $s3file`);
         }
@@ -59,8 +53,12 @@ switch ($operation) {
 
     case 'query':
         $job = $_REQUEST['job'];
-        // TODO: Validate $job
-        $json = getJSONResult(file_get_contents("/tmp/rmanage_$job.log"));
+        $json = @file_get_contents("/tmp/rmanage_$job.log");
+        if (empty($json)) {
+            $json = ['result' => 'error', 'message' => 'Log file is missing.'];
+        } else {
+            $json = getJSONResult($json);
+        }
         break;
 
     case 'maint':
@@ -82,10 +80,7 @@ switch ($operation) {
         break;
 
     default:
-        $json = [
-            'status' => 'error',
-            'message' => "Unknown operation $operation"
-        ];
+        $json = ['status' => 'error', 'message' => "Unknown operation $operation"];
 }
 
 /**
