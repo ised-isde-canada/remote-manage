@@ -34,7 +34,7 @@ set_time_limit(10800);
 date_default_timezone_set("America/Toronto");
 
 // Long form of valid parameters.
-$parameters = ['format::', 'help', 'verbose'];
+$parameters = ['format::', 'help', 'log-stderr', 'verbose'];
 
 // Get command line options.
 $params = getopt('f::hv', $parameters, $opIndex);
@@ -46,6 +46,7 @@ $opArgs = isset($argv[$opIndex + 1]) ? array_slice($argv, $opIndex + 1) : [];
 // Set boolean options (true or false)
 $option['help'] = isset($params['help']) || isset($params['h']);
 $option['verbose'] = isset($params['verbose']) || isset($params['v']);
+$option['log-stderr'] = isset($params['log-stderr']);
 
 // Set options that may have values. Long options take precedence over short options.
 // If this syntax is new to you, search for "php null coalescing operator".
@@ -60,6 +61,7 @@ if (empty($operation) || $operation == 'help' || $option['help']) {
 }
 
 Log::$debugMode = !empty($option['verbose']);
+Log::$logStderr = !empty($option['log-stderr']);
 
 // Load .env file which may accompany this package.
 if (($env = @file(__DIR__ . '/.env')) !== false) {

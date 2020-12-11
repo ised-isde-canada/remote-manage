@@ -25,6 +25,7 @@ COMMANDS
 
     --verbose              Display additional information during execution.
     --format=[bytes/human] Format file sizes. Default is in bytes (CLI in human)
+    --log-stderr           Log verbose messages to stderr also
 
 EXAMPLES
     php manage.php backup

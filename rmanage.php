@@ -7,7 +7,7 @@ $operation = $_REQUEST['operation'] ?? '';
 $options = [];
 
 if (isset($_REQUEST['verbose']) && $_REQUEST['verbose'] == 'true') {
-    $options[] = '--verbose';
+    $options[] = '--verbose --log-stderr';
 }
 
 if (isset($_REQUEST['format'])) {

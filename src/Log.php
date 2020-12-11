@@ -10,6 +10,7 @@ class Log
 {
     public  static $debugMode = false;
     public  static $errCount = 0;
+    public  static $logStderr = false;
     private static $data = null;
     private static $startTime = null;
     private static $endTime = null;
@@ -52,9 +53,15 @@ class Log
             if (is_array($str)) {
                 foreach ($str as $s) {
                     echo $s . PHP_EOL;
+                    if (self::$logStderr) {
+                        fwrite(STDERR, $s . PHP_EOL);
+                    }
                 }
             } else {
                 echo $str . PHP_EOL;
+                if (self::$logStderr) {
+                    fwrite(STDERR, $str . PHP_EOL);
+                }
             }
         }
     }
