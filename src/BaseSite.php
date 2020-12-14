@@ -267,10 +267,12 @@ abstract class BaseSite
             SysCmd::exec('chmod -R u+w ' . $this->cfg['tmpdir']);
             SysCmd::exec('rm -rf ' . $this->cfg['tmpdir']);
             // HACK attempts to resolve timing issue... but we will only wait so long.
+            clearstatcache();
             $i = 0;
             while (is_dir($this->cfg['tmpdir']) && $i < 60) { // Less than 60 seconds.
                 sleep(1);
                 $i++;
+                clearstatcache();
             }
         }
 
