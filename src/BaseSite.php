@@ -204,6 +204,7 @@ abstract class BaseSite
         }
         catch (\Exception $e) {
             Log::error('Failed to transfer backup file to S3.');
+            Log::msg($e->getMessage());
             $this->cleanup();
             return false;
         }
@@ -232,6 +233,7 @@ abstract class BaseSite
             ), $this->cfg['tmpdir']);
         }
         catch (\Exception $e) {
+            Log::msg($e->getMessage());
             $this->cleanup();
             return false;
         }
@@ -244,6 +246,7 @@ abstract class BaseSite
         }
         catch (\Exception $e) {
             Log::error('Oh no! GZIP failed.');
+            Log::msg($e->getMessage());
             $this->cleanup();
             return false;
         }
@@ -446,6 +449,7 @@ abstract class BaseSite
             }
         }
         catch (\Exception $e) {
+            Log::msg($e->getMessage());
             $this->cleanup();
             return false;
         }
@@ -466,6 +470,7 @@ abstract class BaseSite
             ), $this->cfg['tmpdir']);
         }
         catch (\Exception $e) {
+            Log::msg($e->getMessage());
             $this->cleanup();
             return false;
         }
@@ -477,6 +482,7 @@ abstract class BaseSite
                 $this->restoreTarFile
             ), $this->cfg['tmpdir']);
         } catch (\Exception $e) {
+            Log::msg($e->getMessage());
             $this->cleanup();
             return false;
         }
@@ -528,6 +534,7 @@ abstract class BaseSite
                 SysCmd::exec($cmd, $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
+                Log::msg($e->getMessage());
                 $this->cleanup();
                 return false;
             }
@@ -537,6 +544,7 @@ abstract class BaseSite
                 SysCmd::exec($cmd, $this->cfg['tmpdir']);
             }
             catch (\Exception $e) {
+                Log::msg($e->getMessage());
                 $this->cleanup();
                 return false;
             }
