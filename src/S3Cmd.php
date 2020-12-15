@@ -67,7 +67,7 @@ class S3Cmd
             ]);
         }
         catch (S3Exception $e) {
-            Log::msg($e->getMessage());
+            Log::error($e->getMessage());
             Log::msg('S3 Exception on listObjectsV2!');
             return false;
         }
@@ -100,7 +100,7 @@ class S3Cmd
         try {
             $result = $uploader->upload();
         } catch (MultipartUploadException $e) {
-            Log::msg($e->getMessage());
+            Log::error($e->getMessage());
             Log::error('S3Exception on multipart upload!');
             return false;
         }
@@ -129,7 +129,7 @@ class S3Cmd
             ]);
         }
         catch(S3Exception $e) {
-            Log::msg($e->getMessage());
+            Log::error($e->getMessage());
             Log::error('S3 failed to retrieve file.');
             return false;
         }
