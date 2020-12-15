@@ -26,6 +26,7 @@ class Log
     {
         echo "ERROR: $str" . PHP_EOL;
         self::$errCount++;
+        self::msg($str);
     }
 
     /**
