@@ -86,7 +86,7 @@ class Site extends BaseSite
                 ));
             }
             catch (\Exception $e) {
-                Log::msg($e->getMessage());
+                Log::error($e->getMessage());
                 return false;
             }
 
@@ -96,7 +96,7 @@ class Site extends BaseSite
                 ));
             }
             catch (\Exception $e) {
-                Log::msg($e->getMessage());
+                Log::error($e->getMessage());
                 return false;
             }
         }
