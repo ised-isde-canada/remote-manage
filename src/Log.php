@@ -24,9 +24,8 @@ class Log
      */
     public static function error($str)
     {
-        echo "ERROR: $str" . PHP_EOL;
         self::$errCount++;
-        self::msg($str);
+        self::msg("ERROR: $str");
     }
 
     /**
@@ -36,8 +35,7 @@ class Log
      */
     public static function exitError($str)
     {
-        echo "ERROR: $str" . PHP_EOL;
-        self::msg($str);
+        self::msg("ERROR: $str");
         getSite()->cleanup();
         exit(1);
     }
