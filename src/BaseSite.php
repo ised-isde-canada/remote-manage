@@ -176,6 +176,7 @@ abstract class BaseSite
                 ), $parentDir);
             }
             catch (\Exception $e) {
+                Log::msg($e->getMessage());
                 $this->cleanup();
                 return false;
             }
