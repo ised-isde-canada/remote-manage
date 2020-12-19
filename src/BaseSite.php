@@ -92,6 +92,15 @@ abstract class BaseSite
         // Fails if there is neither a database or directories to be backed-up.
         $success = !(empty($this->cfg['dbname']) && empty($this->volumes));
 
+        // Allow any executing cronjobs to bleed out before we begin.
+        if ($site->siteType == 'moodle') {
+            Log::msg("Waiting for Cron to finish. Delaying start by 5m10s...");
+            sleep(610); // For 5m10s.
+        } else {
+            Log::msg("Waiting for Cron to finish. Delaying start by 35s...");
+            sleep(35); // For 35s.
+        }
+
         // Backup database, if any.
         if ($success && !empty($this->cfg['dbname'])) {
             $success = $this->backupDatabase();
