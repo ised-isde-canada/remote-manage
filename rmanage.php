@@ -33,6 +33,21 @@ if (file_exists(getenv('HOME') . '/lang/en/moodle.php')) { // Moodle.
 } else { // Unknown type.
     $rmanageLog = "/tmp";
 }
+
+// Clean-up log files older than 7 days.
+if($files = glob($rmanageLog . '/rmanage_*.log')) {
+    $now = time();
+    $seconds = 60 * 60 * 24 * 3; // 3 days.
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            if ($now - filemtime($file) >= $seconds) { // Too old, delete it.
+                unlink($file);
+            }
+        }
+    }
+}
+
+// Determine name of log file.
 $rmanageLog .= "/rmanage_$job.log";
 
 $json = [];
