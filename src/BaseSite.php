@@ -93,13 +93,20 @@ abstract class BaseSite
         $success = !(empty($this->cfg['dbname']) && empty($this->volumes));
 
         // Allow any executing cronjobs to bleed out before we begin.
-        if ($site->siteType == 'moodle') {
-            Log::msg("Waiting for Cron to finish. Delaying start by 5m10s...");
-            sleep(610); // For 5m10s.
-        } else {
-            Log::msg("Waiting for Cron to finish. Delaying start by 35s...");
-            sleep(35); // For 35s.
+        // The following calculates the minimum required delay based on the starting point within the current minute.
+        // The delay should match the value of the terminationGracePeriodSeconds of your cronjob's settings.
+        $now = time() % 60;
+        if ($this->siteType == 'moodle') {
+            // Delay is up to 300 seconds (5 minutes).
+            $delay = 300;
+            // Note: As of Moodle 3.10, you can query the status of Moodle scheduler thereby potentially reducing required delay.
+        } else { // Drupal and others.
+            // Delay is up to 35 seconds. This may need to be increased if you start having long cronjobs.
+            $delay = 35;
         }
+        $seconds = ($now > $delay) ? 0 : $delay - $now;
+        Log::msg("Waiting for cron to finish. Delaying backup by $seconds seconds ...");
+        sleep($seconds);
 
         // Backup database, if any.
         if ($success && !empty($this->cfg['dbname'])) {
