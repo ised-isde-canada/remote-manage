@@ -27,6 +27,8 @@ COMMANDS
     --format=[bytes/human] Format file sizes. Default is in bytes (CLI in human)
     --log-stderr           Log verbose messages to stderr also
 
+Note: To use backup, restore and s3list from the CLI, you will need an .env file in the same directory as manage.php.
+
 EXAMPLES
     php manage.php backup
     php manage.php delete learning-sandbox

@@ -14,7 +14,41 @@ if (isset($_REQUEST['format'])) {
     $options[] = '--format=' . $_REQUEST['format'];
 }
 
-$job = (isset($_REQUEST['job']) && $_REQUEST['job'] == 'true') ? getmypid() : null;
+// Determine Job ID.
+if (isset($_REQUEST['job'])) {
+    if ($_REQUEST['job'] == 'true') { // New job ID
+        $job = getmypid();
+    } else if (is_numeric($_REQUEST['job'])) { // Job already in progress.
+        $job = $_REQUEST['job'];
+    } else {
+        $job = '';
+    }
+}
+
+// Determine location for storing rmanage_##.log file.
+if (file_exists(getenv('HOME') . '/lang/en/moodle.php')) { // Moodle.
+    $rmanageLog = "/data/moodle";
+} else if (is_dir(getenv('HOME') . '/drush')) { // Drupal.
+    $rmanageLog = "/opt/app-root/src/data";
+} else { // Unknown type.
+    $rmanageLog = "/tmp";
+}
+
+// Clean-up log files older than 7 days.
+if($files = glob($rmanageLog . '/rmanage_*.log')) {
+    $now = time();
+    $seconds = 60 * 60 * 24 * 3; // 3 days.
+    foreach ($files as $file) {
+        if (is_file($file)) {
+            if ($now - filemtime($file) >= $seconds) { // Too old, delete it.
+                unlink($file);
+            }
+        }
+    }
+}
+
+// Determine name of log file.
+$rmanageLog .= "/rmanage_$job.log";
 
 $json = [];
 
@@ -29,7 +63,7 @@ switch ($operation) {
     case 'backup':
         getS3Credentials();
         if ($job) {
-            `$cmd backup > /tmp/rmanage_$job.log &`;
+            `$cmd backup > $rmanageLog &`;
             $json = ['status' => 'ok', 'job' => $job];
         } else {
             $json = getJSONResult(`$cmd backup`);
@@ -44,7 +78,7 @@ switch ($operation) {
         getS3Credentials();
         $s3file = $_REQUEST['s3file'];
         if ($job) {
-            `$cmd restore $s3file > /tmp/rmanage_$job.log &`;
+            `$cmd restore $s3file > $rmanageLog &`;
             $json = ['status' => 'ok', 'job' => $job];
         } else {
             $json = getJSONResult(`$cmd restore $s3file`);
@@ -52,8 +86,7 @@ switch ($operation) {
         break;
 
     case 'query':
-        $job = $_REQUEST['job'];
-        $json = @file_get_contents("/tmp/rmanage_$job.log");
+        $json = @file_get_contents($rmanageLog);
         if (empty($json)) {
             $json = ['result' => 'error', 'message' => 'Log file is missing.'];
         } else {
