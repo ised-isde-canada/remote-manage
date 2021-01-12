@@ -25,7 +25,7 @@ class Postgres
 
         // Dump database using tar format (-F t).
         try {
-            SysCmd::exec(sprintf('pg_dump -h %s -p %s -U %s -x -F t %s > %s 2>&1',
+            SysCmd::exec(sprintf('pg_dump -h %s -p %s -U %s -x -c -F t %s > %s 2>&1',
                 $db['host'],
                 $db['port'],
                 $db['user'],
