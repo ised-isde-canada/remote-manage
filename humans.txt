@@ -1,0 +1,4 @@
+Developed by:
+* Duncan Sutter
+* Samantha Tripp
+* Michael Milette
