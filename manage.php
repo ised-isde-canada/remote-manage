@@ -97,6 +97,18 @@ switch ($operation) {
         $success = $site->restore($filename);
         break;
 
+    case 'download':
+        $filename = array_shift($opArgs);
+        // Check to make sure we have a filename.
+        if (empty($filename)) {
+            $success = false;
+            Log::error('Missing filename.');
+        } else {
+            $s3 = new S3Cmd();
+            $success = $s3->getFile($filename, '.' . strstr($filename, '/'));
+        }
+        break;
+
     case 'delete':
         $appname = array_shift($opArgs);
         if ($appname != $site->appEnv) {

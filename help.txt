@@ -11,13 +11,14 @@ COMMANDS
     You must specify only one of the following commands:
 
     backup                 Backup this site.
-    delete <app-name>      Delete database and persistent volumne files.
+    delete <app-name>      Delete database and persistent volume files.
                            Specified app-name must match the current system's app-name.
     help                   Display this information.
     maint [on/off]         Set site in maintenance (on), prod (off) mode.
-                           If neither is spacified, will return current state.
-    restore <filename>     Restore the specified backup file.
+                           If neither is specified, will return current state.
     s3list [filter]        List available backups. Optional filename substring filter.
+    restore <filename>     Restore the specified backup file.
+    download <filename>    Download a backup file from S3 without restoring it.
     space                  List disk space information.
     app-name               Display the name of this application.
 
@@ -36,6 +37,7 @@ EXAMPLES
     php manage.php maint
     php manage.php maint on
     php manage.php restore filename.tar.gz
+    php manage.php download filename.tar.gz
     php manage.php s3list
     php manage.php space
     php manage.php --format=bytes space

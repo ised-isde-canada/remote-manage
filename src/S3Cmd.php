@@ -61,29 +61,31 @@ class S3Cmd
             return false;
         }
 
-        try {
-            $result = $this->s3->listObjectsV2([
-                'Bucket' => $this->s3_bucket
-            ]);
-        }
-        catch (S3Exception $e) {
-            Log::error($e->getMessage());
-            Log::msg('S3 Exception on listObjectsV2!');
-            return false;
-        }
-
         $files = [];
-        for ($n = 0; $n <sizeof($result['Contents']); $n++) {
-            if (empty($filter) || stripos($result['Contents'][$n]['Key'], $filter) !== false) {
-                $files[] = [
-                    'filename' => $result['Contents'][$n]['Key'],
-                    'size' => $result['Contents'][$n]['Size'],
-                    'modified' => $result['Contents'][$n]['LastModified']
-                ];
+        $params = ['Bucket' => $this->s3_bucket];
+        do {
+            try {
+                $data = $this->s3->listObjectsV2($params);
             }
-        }
-        Log::data('files', $files);
+            catch (S3Exception $e) {
+                Log::error($e->getMessage());
+                Log::msg('S3 Exception on listObjectsV2!');
+                return false;
+            }
 
+            for ($n = 0; $n <sizeof($data['Contents']); $n++) {
+                if (empty($filter) || stripos($data['Contents'][$n]['Key'], $filter) !== false) {
+                    $files[] = [
+                        'filename' => $data['Contents'][$n]['Key'],
+                        'size' => $data['Contents'][$n]['Size'],
+                        'modified' => $data['Contents'][$n]['LastModified']
+                    ];
+                }
+            }
+            $params['ContinuationToken'] = $data['NextContinuationToken'];
+        } while ($data['IsTruncated']);
+
+        Log::data('files', $files);
         return true;
     }
 
