@@ -25,7 +25,7 @@ class Postgres
 
         // Dump database using tar format (-F t).
         try {
-            SysCmd::exec(sprintf('pg_dump -h %s -p %s -U %s -x -c -F t %s > %s 2>&1',
+            SysCmd::exec(sprintf('pg_dump -h %s -p %s -U %s -x -c %s > %s 2>&1',
                 $db['host'],
                 $db['port'],
                 $db['user'],
@@ -54,15 +54,23 @@ class Postgres
         $this->createPassFile($db);
 
         try {
-            SysCmd::exec(sprintf('pg_restore --no-privileges --no-owner -h %s -p %s -U %s -d %s -F t %s 2>&1',
+           if ($site->siteType == 'drupal') {
+             $drush = new Drush();
+             $drush->sqlRestore($site->cfg['tmpdir']);
+           }
+           else {
+             SysCmd::exec(sprintf('pg_restore --no-privileges --no-owner -h %s -p %s -U %s -d %s %s 2>&1',
                 $db['host'],
                 $db['port'],
                 $db['user'],
                 $db['name'],
                 $db['file']
             ), $site->cfg['tmpdir'], FALSE, TRUE);
+           }
+
         }
         catch (\Exception $e) {
+            Log::error("Error running the restore command: " . $e->getMessage());
         }
 
         $this->removePassFile();

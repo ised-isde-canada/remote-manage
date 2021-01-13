@@ -15,4 +15,15 @@ class Drush
         chdir($cwd);
         return $json;
     }
+
+    public function sqlRestore($pathToDump)
+    {
+        $cwd = getcwd();
+        chdir('/opt/app-root/src');
+        SysCmd::exec(sprintf('vendor/bin/drush sql:query --file=%s 2>&1',
+          $pathToDump . '/database.tar'
+        ), '/opt/app-root/src', TRUE, TRUE);
+        chdir($cwd);
+        return TRUE;
+    }
 }
