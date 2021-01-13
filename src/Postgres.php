@@ -54,21 +54,20 @@ class Postgres
         $this->createPassFile($db);
 
         try {
-/*            SysCmd::exec(sprintf('pg_restore --no-privileges --no-owner -h %s -p %s -U %s -d %s %s 2>&1',
+           if ($site->siteType == 'drupal') {
+             $drush = new Drush();
+             $drush->sqlRestore($site->cfg['tmpdir']);
+           }
+           else {
+             SysCmd::exec(sprintf('pg_restore --no-privileges --no-owner -h %s -p %s -U %s -d %s %s 2>&1',
                 $db['host'],
                 $db['port'],
                 $db['user'],
                 $db['name'],
-                $db['file']
-            ), $site->cfg['tmpdir'], FALSE, TRUE);*/
-
-            SysCmd::exec(sprintf('psql -q --dbname=%s --host=%s --port=%s --username=%s  --no-align --field-separator="    " --pset tuples_only=on --file %s 2>&1',
-                $db['name'],
-                $db['host'],
-                $db['port'],
-                $db['user'],
                 $db['file']
             ), $site->cfg['tmpdir'], FALSE, TRUE);
+           }
+
         }
         catch (\Exception $e) {
             Log::error("Error running the restore command: " . $e->getMessage());
