@@ -1,6 +1,6 @@
 {
-    "name": "ised-isde-canada/remote-manage",
-    "description": "Remote Management",
+    "name": "ised-isde/remote-manage",
+    "description": "Remote Site Management",
     "type": "library",
     "license": "GPL-2.0+",
     "autoload": {
