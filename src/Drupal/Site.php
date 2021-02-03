@@ -44,7 +44,7 @@ class Site extends BaseSite
      */
     public static function detect()
     {
-        return is_dir(getenv('HOME') . '/drush') ? true : false;
+        return file_exists(getenv('HOME') . '/vendor/bin/drush') ? true : false;
     }
 
     /**
@@ -105,7 +105,7 @@ class Site extends BaseSite
 
     /**
      * Get current maintenance mode status of site.
-     * 
+     *
      * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.
      *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
