@@ -25,7 +25,8 @@ class Postgres
 
         // Dump database using tar format (-F t).
         try {
-            SysCmd::exec(sprintf('pg_dump -h %s -p %s -U %s -x -c %s > %s 2>&1',
+            $typeTar = $site->siteType == 'drupal' ? '' : '-F t ';
+            SysCmd::exec(sprintf('pg_dump -h %s -p %s -U %s -x -c ' . $typeTar .'%s > %s 2>&1',
                 $db['host'],
                 $db['port'],
                 $db['user'],
