@@ -176,6 +176,7 @@ switch ($operation) {
         }
         $inMaintMode = $site->getMaintMode();
         Log::data('maintMode', $inMaintMode? 'on' : 'off');
+        $site->cleanup();
         break;
 
     default:
