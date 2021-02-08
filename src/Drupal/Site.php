@@ -112,8 +112,8 @@ class Site extends BaseSite
      */
     public function getMaintMode($restoreStatus = false) {
         $output = SysCmd::exec($this->cfg['drush'] . ' sql-query "select value from key_value where name like \'%maintenance_mode%\'"', $this->cfg['homedir'], true, true);
-        if ($restoreStatus) $this->restoreMaintMode = $output[0];
-        return $output[0];
+        if ($restoreStatus) $this->restoreMaintMode = $output;
+        return $output;
     }
 
     /**
