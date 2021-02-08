@@ -111,7 +111,7 @@ class Site extends BaseSite
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     public function getMaintMode($restoreStatus = false) {
-        $output = \Drupal::state()->get('system.maintenance_mode');
+        $output = SysCmd::exec($this->cfg['drush'] . ' sql-query "select value from key_value where name like \'%maintenance_mode%\'"', $this->cfg['homedir'], true, true);
         if ($restoreStatus) $this->restoreMaintMode = $output;
         return $output;
     }
@@ -137,7 +137,7 @@ class Site extends BaseSite
             if (!$inMaintMode) {
                 Log::msg("Enter Drupal maintenance mode");
                 // Enable maintenance mode.
-                \Drupal::state()->set('system.maintenance_mode', true);
+                $success = SysCmd::exec($this->cfg['drush'] . ' sql-query "UPDATE key_value SET value = \'i:1;\' WHERE name LIKE \'%maintenance_mode%\'"', $this->cfg['homedir']);
                 // Rebuild cache (no need to backup temp files).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
             }
@@ -145,10 +145,10 @@ class Site extends BaseSite
         else {
             if ($inMaintMode) {
                 Log::msg("Exit Drupal maintenance mode");
-                // Disable maintenance mode.
-                \Drupal::state()->set('system.maintenance_mode', false);
                 // Rebuild cache (in case we are doing a restore).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
+                // Disable maintenance mode.
+                $success = SysCmd::exec($this->cfg['drush'] . ' sql-query "UPDATE key_value SET value = \'i:0;\' WHERE name LIKE \'%maintenance_mode%\'"', $this->cfg['homedir']);
             }
         }
         return ($success == 0);
