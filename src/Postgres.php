@@ -72,6 +72,8 @@ class Postgres
         }
         catch (\Exception $e) {
             Log::error("Error running the restore command: " . $e->getMessage());
+            $this->removePassFile();
+            return false;
         }
 
         $this->removePassFile();
