@@ -103,6 +103,16 @@ class Site extends BaseSite
         return true;
     }
 
+
+    public function hexToStr($hex) {
+      $string='';
+      for ($i=0; $i < strlen($hex)-1; $i+=2){
+        $string .= chr(hexdec($hex[$i].$hex[$i+1]));
+      }
+      return $string;
+    }
+
+
     /**
      * Get current maintenance mode status of site.
      *
@@ -112,8 +122,20 @@ class Site extends BaseSite
      */
     public function getMaintMode($restoreStatus = false) {
         $output = SysCmd::exec($this->cfg['drush'] . ' sql-query "select value from key_value where name like \'%maintenance_mode%\'"', $this->cfg['homedir'], true, true);
-        if ($restoreStatus) $this->restoreMaintMode = $output;
-        return $output;
+        $string_output = $output[0];
+        // value column in key_value table is a serialized variable.
+        // unserialize serialize boolean to get the maint mode.
+        // Or , do this instead.
+        if ($string_output == "b:1;" || unserialize($string_output)) {
+          $mode = true;
+          Log::msg("Maintenance mode is enabled.");
+        }
+        else {
+          $mode = false;
+          Log::msg("Maintenance mode is disabled.");
+        }
+        if ($restoreStatus) $this->restoreMaintMode = $mode;
+        return $mode;
     }
 
     /**
