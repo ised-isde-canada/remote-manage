@@ -44,7 +44,8 @@ class Site extends BaseSite
      */
     public static function detect()
     {
-        return file_exists(getenv('HOME') . '/vendor/bin/drush') ? true : false;
+        // Just check if we have ~/html/core/modules directory
+        return is_dir(getenv('HOME') . '/html/core/modules') ? true : false;
     }
 
     /**
@@ -53,9 +54,6 @@ class Site extends BaseSite
      */
     public function isInstalled()
     {
-        // Old method - check settings.php
-        //return file_exists($this->sitesDir . '/settings.php');
-
         // Check drush status for Database : Connected
         $status = SysCmd::exec($this->cfg['drush'] . ' status', $this->cfg['homedir'], true, true);
 

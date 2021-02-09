@@ -19,14 +19,14 @@ class SysCmd
     public static function exec($cmd, $dir = '', $allowErrors = false, $retLog = false)
     {
         // Change into specified directory if specified.
+        $cwd = null;
         if (!empty($dir)) {
             $cwd = getcwd();
             Log::msg("chdir $dir");
             chdir($dir);
         }
 
-        Log::msg('Running process...');
-        Log::msg($cmd);
+        Log::msg('SysCmd: ' . $cmd);
         exec($cmd, $output, $rc);
 
         // Save the last return code in case the caller wants to retrieve it.
@@ -43,7 +43,7 @@ class SysCmd
         }
 
         // Restore current directory back to its original state, if needed.
-        if (!empty($dir)) {
+        if ($cwd && $cwd != getcwd()) {
             Log::msg("chdir $cwd");
             chdir($cwd);
         }

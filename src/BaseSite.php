@@ -66,7 +66,7 @@ abstract class BaseSite
             return false;
         }
 
-        Log::msg("Backup process is running...");
+        Log::msg("Begin backup process...");
 
         // Use the current date and time to determine backup type as one of: D (daily), W (weekly), M (monthly).
         if (date('j') == 1) { // First day of the month
@@ -364,7 +364,7 @@ abstract class BaseSite
             Log::exitError('Missing filename.');
         }
 
-        Log::msg("Restore process is running...");
+        Log::msg("Begin restore process...");
         $this->restoreArchive = $backupFile;
         $this->restoreTarFile = basename($backupFile);
 
@@ -386,8 +386,19 @@ abstract class BaseSite
             $success = $this->unzipArchive();
         }
 
-        // Drop database tables
-        if ($success) {
+        // Restore files, if any.
+        if ($success && !empty($this->volumes)) {
+            $success = $this->restoreVolumes();
+        }
+
+        // Do a fresh test to see if the site is installed now.
+        if ($success && $this->isInstalled()) {
+            $this->maintMode(false);
+        }
+
+        // Drop database tables (if the site exists)
+        if ($success && $this->siteExists) {
+            Log::msg('Drop database tables...');
             $success = $this->dropTables();
         }
 
@@ -395,15 +406,6 @@ abstract class BaseSite
         // TODO option to restore database only
         if ($success && !empty($this->cfg['dbname'])) {
             $success = $this->restoreDatabase();
-        }
-
-        // Restore files, if any.
-        if ($success && !empty($this->volumes)) {
-            $success = $this->restoreVolumes();
-        }
-
-        if ($success) {
-            $this->maintMode(false);
         }
 
         // Display elapsed time.
@@ -551,7 +553,6 @@ abstract class BaseSite
             }
             catch (\Exception $e) {
                 Log::error($e->getMessage());
-                $this->cleanup();
                 return false;
             }
 
@@ -561,7 +562,6 @@ abstract class BaseSite
             }
             catch (\Exception $e) {
                 Log::error($e->getMessage());
-                $this->cleanup();
                 return false;
             }
         }

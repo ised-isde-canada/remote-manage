@@ -26,9 +26,8 @@ class S3Cmd
 
         if (!$this->error) {
             $this->s3_bucket = getenv('AWS_S3_BUCKET');
-            Log::msg("s3_bucket is $this->s3_bucket");
             $this->s3_region = getenv('AWS_S3_REGION');
-            Log::msg("s3_region is $this->s3_region");
+            Log::msg('S3 bucket is: ' . $this->s3_bucket . '.' . $this->s3_region);
 
             $this->s3 = new S3Client([
                 'version' => 'latest',
