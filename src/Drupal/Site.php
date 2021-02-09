@@ -163,13 +163,14 @@ class Site extends BaseSite
             }
         }
         else {
-            if ($inMaintMode) {
+// The flag for $inMaintMode does not seem to be accurate.
+//            if ($inMaintMode) {
                 Log::msg("Exit Drupal maintenance mode");
                 // Rebuild cache (in case we are doing a restore).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
                 // Disable maintenance mode.
                 $success = SysCmd::exec($this->cfg['drush'] . ' sql-query "UPDATE key_value SET value = \'i:0;\' WHERE name LIKE \'%maintenance_mode%\'"', $this->cfg['homedir']);
-            }
+//            }
         }
         return ($success == 0);
     }

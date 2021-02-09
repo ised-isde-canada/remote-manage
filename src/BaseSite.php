@@ -391,14 +391,8 @@ abstract class BaseSite
             $success = $this->restoreVolumes();
         }
 
-        // Do a fresh test to see if the site is installed now.
-        if ($success && $this->isInstalled()) {
-            $this->maintMode(false);
-        }
-
-        // Drop database tables (if the site exists)
+        // Drop database tables
         if ($success && $this->siteExists) {
-            Log::msg('Drop database tables...');
             $success = $this->dropTables();
         }
 
@@ -406,6 +400,10 @@ abstract class BaseSite
         // TODO option to restore database only
         if ($success && !empty($this->cfg['dbname'])) {
             $success = $this->restoreDatabase();
+        }
+
+        if ($success) {
+            $this->maintMode(false);
         }
 
         // Display elapsed time.
