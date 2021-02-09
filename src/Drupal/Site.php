@@ -122,16 +122,16 @@ class Site extends BaseSite
      */
     public function getMaintMode($restoreStatus = false) {
         $output = SysCmd::exec($this->cfg['drush'] . ' sql-query "select value from key_value where name like \'%maintenance_mode%\'"', $this->cfg['homedir'], true, true);
-        // value column in key_value table is a hex blob.
-        // Convert hex blob to string.
-        $output = self::hexToStr($output[0]);
-        // value column in key_value table is now a serialized array.
-        // unserialize serialized array to get the maint mode boolean.
-        $mode = unserialize($output);
-        if ($mode) {
+        $string_output = $output[0];
+        // value column in key_value table is a serialized variable.
+        // unserialize serialize boolean to get the maint mode.
+        // Or , do this instead.
+        if ($string_output == "b:1;" || unserialize($string_output)) {
+          $mode = true;
           Log::msg("Maintenance mode is enabled.");
         }
         else {
+          $mode = false;
           Log::msg("Maintenance mode is disabled.");
         }
         if ($restoreStatus) $this->restoreMaintMode = $mode;
