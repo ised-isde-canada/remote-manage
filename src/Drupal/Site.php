@@ -69,8 +69,7 @@ class Site extends BaseSite
 
 
     /**
-     * Delete files within persistent volumes, without deleting
-     * the directory itself.
+     * Delete files within persistent volumes, without deleting the directory itself.
      *
      * @return boolean Successful (true), failed (false).
      */
@@ -101,16 +100,6 @@ class Site extends BaseSite
         return true;
     }
 
-
-    public function hexToStr($hex) {
-      $string='';
-      for ($i=0; $i < strlen($hex)-1; $i+=2){
-        $string .= chr(hexdec($hex[$i].$hex[$i+1]));
-      }
-      return $string;
-    }
-
-
     /**
      * Get current maintenance mode status of site.
      *
@@ -128,14 +117,12 @@ class Site extends BaseSite
             $mode = false;
             Log::msg("Maintenance mode is disabled.");
         }
-        if ($restoreStatus) $this->restoreMaintMode = $mode;
         return $mode;
     }
 
     /**
      * Take the site in or out of maintenance mode.
-     * NOTE: The class which extends this base class must
-     * define how maintMode is implemented.
+     * NOTE: The class which extends this base class must define how maintMode is implemented.
      *
      * @param boolean $maint In maintenance mode (true), otherwise false.
      * @param boolean $restoreStatus Restore original maintenance mode state (true), otherwise false.

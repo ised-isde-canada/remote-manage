@@ -22,7 +22,7 @@ class Postgres
     {
         $site = getSite();
         $this->createPassFile($db);
-       $success = true;
+        $success = true;
 
         // Dump database to a file. Plain text for Drupal, tar for everyone else.
         $type = pathinfo($db['file'], PATHINFO_EXTENSION) == 'sql' ? '-F p' : '-F t';

@@ -5,9 +5,9 @@
  * @category BaseSite
  * @package  Remote-manage
  * @author   Duncan Sutter <dsutter@qualivera.com>
- * @author   sam-tripp <samantha.tripp@canada.ca>
+ * @author   Samantha Tripp <samantha.tripp@canada.ca>
  * @author   Michael Milette <michael.milette@tngconsulting.ca>
- * @license  Copyright 2020. License to be determined.
+ * @license  Copyright 2020-2021. MIT License - <https://opensource.org/licenses/MIT>
  * @link     https://github.com/ised-isde-canada/remote-manage
  * PHP version 7
  */
@@ -22,25 +22,25 @@ use Exception;
  * @category BaseSite
  * @package  Remote-manage
  * @author   Duncan Sutter <dsutter@qualivera.com>
- * @author   sam-tripp <samantha.tripp@canada.ca>
+ * @author   Samantha Tripp <samantha.tripp@canada.ca>
  * @author   Michael Milette <michael.milette@tngconsulting.ca>
- * @license  Copyright 2020. License to be determined.
+ * @license  Copyright 2020-2021. MIT License - <https://opensource.org/licenses/MIT>
  * @link     https://github.com/ised-isde-canada/remote-manage
  */
 abstract class BaseSite
 {
-    public    $siteType = 'unknown';     // The type of site. Use all lowercase
-    public    $appEnv = 'dev';           // Environment: dev, test, qa, prod
-    public    $cfg = [];                 // Configuration data
+    public    $siteType = 'unknown';     // The type of site. Use all lowercase.
+    public    $appEnv = 'dev';           // Environment: dev, test, qa, prod.
+    public    $cfg = [];                 // Configuration data.
     public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
-    public    $siteExists = null;        // Flag to indicate if the site already exists or will be newly created
-    public    $restoreMaintMode = null;  // If set, cleanup process will restore the maintenace mode to this state
-    private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time)
-    private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end
-    private   $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly)
+    public    $siteExists = null;        // Flag to indicate if the site already exists or will be newly created.
+    public    $initialMaintMode = null;  // Initial maintenance mode before this script started.
+    private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time).
+    private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end.
+    private   $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly).
     private   $backupDir = ['D' => 'daily', 'W' => 'weekly', 'M' => 'monthly'];
-    private   $restoreArchive = null;    // S3 path of archive file (e.g. starts with daily/ ) as requested
-    private   $restoreTarFile = null;    // Actual filename of the archive tar file
+    private   $restoreArchive = null;    // S3 path of archive file (e.g. starts with daily/ ) as requested.
+    private   $restoreTarFile = null;    // Actual filename of the archive tar file.
 
     /**
      * Initializing configuration settings.
@@ -76,37 +76,36 @@ abstract class BaseSite
             $this->backupType = 'W';
         }
 
-        // Set the name of the backup tar file.
-        $this->backupTarFile = sprintf(
-            '%s@%s@%s.tar',
+        // Set the name of the backup ZIP file.
+        $this->backupTarFile = sprintf('%s@%s@%s.zip',
             $this->appEnv,
             date('Y-m-d@H-i'),
             $this->backupType
         );
 
-        // Put site into maintenance mode - preserve original status
-        if ($this->siteExists) {
-            $this->maintMode(true, true);
-        }
-
         // Fails if there is neither a database or directories to be backed-up.
         $success = !(empty($this->cfg['dbname']) && empty($this->volumes));
 
-        // Allow any executing cronjobs to bleed out before we begin.
-        // The following calculates the minimum required delay based on the starting point within the current minute.
-        // The delay should match the value of the terminationGracePeriodSeconds of your cronjob's settings.
-        $now = time() % 60;
-        if ($this->siteType == 'moodle') {
-            // Delay is up to 300 seconds (5 minutes).
-            $delay = 300;
+        // Put site into maintenance mode - preserve original status
+        if ($success && $this->siteExists) {
+            $this->maintMode(true, true);
+
+            // Allow any executing cronjobs to bleed out before we begin.
+            // The following calculates the minimum required delay based on the starting point within the current minute.
+            // The delay should match the value of the terminationGracePeriodSeconds of your cronjob's settings.
+            $now = time() % 60;
+            if ($this->siteType == 'moodle') {
+                // Delay is up to 300 seconds (5 minutes).
+                $delay = 300;
             // Note: As of Moodle 3.10, you can query the status of Moodle scheduler thereby potentially reducing required delay.
-        } else { // Drupal and others.
-            // Delay is up to 35 seconds. This may need to be increased if you start having long cronjobs.
-            $delay = 35;
+            } else { // Drupal and others.
+                // Delay is up to 35 seconds. This may need to be increased if you start having long cronjobs.
+                $delay = 35;
+            }
+            $seconds = ($now > $delay) ? 0 : $delay - $now;
+            Log::msg("Waiting for cron to finish. Delaying backup by $seconds seconds ...");
+            sleep($seconds);
         }
-        $seconds = ($now > $delay) ? 0 : $delay - $now;
-        Log::msg("Waiting for cron to finish. Delaying backup by $seconds seconds ...");
-        sleep($seconds);
 
         // Backup database, if any.
         if ($success && !empty($this->cfg['dbname'])) {
@@ -118,21 +117,14 @@ abstract class BaseSite
             $success = $this->backupVolumes();
         }
 
-        // No need to keep the site in maintenance mode from this point on.
-        $this->maintMode($this->restoreMaintMode);
+        // No need to keep the site in maintenance mode from this point on. Restore to its initial state.
+        $this->maintMode($this->initialMaintMode);
 
         // Display elapsed time.
         Log::stopWatch('time');
 
-        // Create GZIP file.
+        // Transfer ZIP file to S3.
         if ($success) {
-            Log::msg('Creating GZIP file');
-            $success = $this->createZip();
-        }
-
-        // Transfer GZIP file to S3.
-        if ($success) {
-            Log::msg('Transferring GZIP file to S3');
             $success = $this->copyToArchive();
         }
 
@@ -167,10 +159,23 @@ abstract class BaseSite
             return false;
         }
 
-        // Add this file to the list
-        $this->backupFiles[] = $file;
+        // Add file to ZIP archive and delete the file.
 
-        return true;
+        if ($success) {
+            try {
+                SysCmd::exec(sprintf('zip -rygq %s %s 2>&1',
+                    $this->cfg['tmpdir'] . '/' . $this->backupTarFile,
+                    $file
+                ), $this->cfg['tmpdir']);
+            } catch (\Exception $e) {
+                Log::error("Caught exception zipping up the database backup.");
+                $success = false;
+            }
+        }
+
+        // Don't need to clean-up temporary database file. Will be removed in final clean-up.
+
+        return $success;
     }
 
     /**
@@ -182,41 +187,39 @@ abstract class BaseSite
     {
         // Tar the files in each volume directory
         foreach ($this->volumes as $volume) {
-            Log::msg("Backup volume $volume");
+            $success = true;
             $parentDir = dirname($volume);
             $backupDir = basename($volume);
-            $backupFile = "$backupDir-backup.tar";
+            Log::msg("Backing-up volume $volume");
+
             try {
-                SysCmd::exec(sprintf(
-                    'tar cf %s %s',
-                    $this->cfg['tmpdir'] . '/' . $backupFile,
+                SysCmd::exec(sprintf('zip -rygq %s %s 2>&1',
+                    $this->cfg['tmpdir'] . '/' . $this->backupTarFile,
                     $backupDir
                 ), $parentDir);
             }
             catch (\Exception $e) {
+                Log::error("Caught exception zipping up volume $volume.");
                 Log::error($e->getMessage());
                 $this->cleanup();
-                return false;
+                $success = false;
             }
-            // Add this file to the list
-            $this->backupFiles[] = $backupFile;
         }
 
-        return true;
+        return $success;
     }
 
     /**
-     * Copy gzip file to S3.
+     * Copy zip file to S3.
      *
      * @return boolean
      */
     protected function copyToArchive()
     {
-        Log::msg('Starting copyToArchive()');
         $filename = $this->backupDir[$this->backupType] . '/' . $this->backupTarFile;
         $path = $this->cfg['tmpdir'] . '/' . $this->backupTarFile;
+        Log::msg("Transferring to S3: $filename");
         $s3 = new S3Cmd();
-        Log::msg('Transferring to S3.');
         try {
             $s3->copy($filename, $path);
         }
@@ -228,51 +231,6 @@ abstract class BaseSite
         }
 
         Log::msg('Transfer complete.');
-        return true;
-    }
-
-    /**
-     * Create a compressed .tar.gz file from all the backup files.
-     *
-     * @return boolean
-     */
-    protected function createZip()
-    {
-        // Make sure we have some backup files
-        if (empty($this->backupFiles)) {
-            return false;
-        }
-
-        // Create a tar file containing all the backup files
-        try {
-            SysCmd::exec(sprintf('tar cf %s %s',
-                $this->backupTarFile,
-                join(' ', $this->backupFiles)
-            ), $this->cfg['tmpdir']);
-        }
-        catch (\Exception $e) {
-            Log::error($e->getMessage());
-            $this->cleanup();
-            return false;
-        }
-
-        // Now gzip it up
-        try {
-            SysCmd::exec(sprintf('gzip -f %s',
-                $this->backupTarFile
-            ), $this->cfg['tmpdir']);
-        }
-        catch (\Exception $e) {
-            Log::error($e->getMessage());
-            Log::error('Oh no! GZIP failed.');
-            $this->cleanup();
-            return false;
-        }
-
-        // Update the name now that it's zipped
-        $this->backupTarFile .= '.gz';
-
-        Log::msg('Looks like we made a GZIP!');
         return true;
     }
 
@@ -301,7 +259,7 @@ abstract class BaseSite
         // If requested, put the site back in initial maintenance mode state
         if ($this->MaintMode !== null) {
             Log::msg("Restoring original maintenance mode status...");
-            $this->maintMode($this->restoreMaintMode);
+            $this->maintMode($this->initialMaintMode);
         }
 
         return true;
@@ -482,30 +440,36 @@ abstract class BaseSite
      */
     protected function unzipArchive()
     {
+        $success = true;
+        $cmd = pathinfo($this->restoreTarFile, PATHINFO_EXTENSION) == 'zip' ? 'unzip -q' : 'gunzip -f';
         try {
-            SysCmd::exec(sprintf('gunzip -f %s 2>&1',
+            SysCmd::exec(sprintf('%s %s 2>&1',
+                $cmd,
                 $this->restoreTarFile
             ), $this->cfg['tmpdir']);
         }
         catch (\Exception $e) {
             Log::error($e->getMessage());
             $this->cleanup();
-            return false;
+            $success = false;
         }
 
-        $this->restoreTarFile = preg_replace('/\.gz$/', '', $this->restoreTarFile);
+        if ($success && $cmd == 'gunzip -f') {
+            // Un-tar the files.
+            $this->restoreTarFile = preg_replace('/\.gz$/', '', $this->restoreTarFile);
 
-        try {
-            SysCmd::exec(sprintf('tar xf %s',
-                $this->restoreTarFile
-            ), $this->cfg['tmpdir']);
-        } catch (\Exception $e) {
-            Log::error($e->getMessage());
-            $this->cleanup();
-            return false;
+            try {
+                SysCmd::exec(sprintf('tar xf %s',
+                    $this->restoreTarFile
+                ), $this->cfg['tmpdir']);
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+                $this->cleanup();
+                $success = false;
+            }
         }
 
-        return true;
+        return $success;
     }
 
     /**
@@ -549,24 +513,37 @@ abstract class BaseSite
             $parentDir = dirname($volume);
             $backupDir = basename($volume);
             $backupFile = "$backupDir-backup.tar";
-            try {
-                $cmd = sprintf('tar xf %s', $backupFile);
-                SysCmd::exec($cmd, $this->cfg['tmpdir']);
-            }
-            catch (\Exception $e) {
-                Log::error($e->getMessage());
-                return false;
+            $success = true;
+
+            // For backwards compatibility with old version of remote-manage.
+            // Un-tar files if they exist.
+            if (file_exists($backupFile)) {
+                try {
+                    $cmd = sprintf('tar xf %s', $backupFile);
+                    SysCmd::exec($cmd, $this->cfg['tmpdir']);
+                } catch (\Exception $e) {
+                    Log::error($e->getMessage());
+                    $success = false;
+                }
             }
 
-            try {
-                $cmd = sprintf('rsync -a --delete --omit-dir-times --no-g --no-perms %s %s', $backupDir . '/', $volume . '/');
-                SysCmd::exec($cmd, $this->cfg['tmpdir']);
+            // RSync to update existing filepaths using extracted files.
+            if ($success) {
+                try {
+                    $cmd = sprintf('rsync -a --delete --omit-dir-times --omit-link-times --no-g --no-perms %s %s', $backupDir . '/', $volume . '/');
+                    SysCmd::exec($cmd, $this->cfg['tmpdir']);
+                }
+                catch (\Exception $e) {
+                    Log::error($e->getMessage());
+                    $success = false;
+                }
             }
-            catch (\Exception $e) {
-                Log::error($e->getMessage());
-                return false;
+
+            // Don't restore the rest if we have a failure.
+            if (!$success) {
+                break;
             }
         }
-        return true;
+        return $success;
     }
 }

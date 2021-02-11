@@ -86,7 +86,7 @@ class Site extends BaseSite
         if ($this->isInstalled()) {
             $output = SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, false, true);
             if ($restoreStatus) {
-                $this->restoreMaintMode = in_array('Status: enabled', $output);
+                $this->initialMaintMode = in_array('Status: enabled', $output);
             }
             return in_array('Status: enabled', $output);
         }

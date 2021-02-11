@@ -1,5 +1,5 @@
 NAME
-    Manage v2.0 - October 2020
+    Manage v3.0 - February 2021
 
 SYNOPSIS
     php manage.php <option> [command] <parameter>
@@ -36,8 +36,8 @@ EXAMPLES
     php manage.php help
     php manage.php maint
     php manage.php maint on
-    php manage.php restore filename.tar.gz
-    php manage.php download filename.tar.gz
+    php manage.php restore filename.tar.gz  OR  filename.zip
+    php manage.php download filename.tar.gz  OR  filename.zip
     php manage.php s3list
     php manage.php space
     php manage.php --format=bytes space
