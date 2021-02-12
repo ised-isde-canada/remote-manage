@@ -119,7 +119,7 @@ abstract class BaseSite
         }
 
         // No need to keep the site in maintenance mode from this point on.
-        $this->maintMode(false);
+        $this->maintMode($this->restoreMaintMode);
 
         // Display elapsed time.
         Log::stopWatch('time');
