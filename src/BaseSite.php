@@ -150,6 +150,8 @@ abstract class BaseSite
     protected function backupDatabase()
     {
         $db = new Postgres();
+        // Plain text for Drupal, tar for everyone else.
+        $file = 'database.' . ($this->siteType == 'drupal' ? 'sql' : 'tar');
 
         $success = $db->backup(
             ['host' => $this->cfg['dbhost'],
@@ -157,7 +159,7 @@ abstract class BaseSite
             'user' => $this->cfg['dbuser'],
             'pass' => $this->cfg['dbpass'],
             'name' => $this->cfg['dbname'],
-            'file' => 'database.tar']
+            'file' => $file]
         );
         if (!$success) {
             Log::error("Database backup failed!");
@@ -166,7 +168,7 @@ abstract class BaseSite
         }
 
         // Add this file to the list
-        $this->backupFiles[] = 'database.tar';
+        $this->backupFiles[] = $file;
 
         return true;
     }
@@ -514,6 +516,8 @@ abstract class BaseSite
     protected function restoreDatabase()
     {
         $db = new Postgres();
+        $file = $this->cfg['tmpdir'] . '/' . 'database.';
+        $file .= (file_exists($file . 'sql') ? 'sql' : 'tar');
 
         $success = $db->restore([
             'host' => $this->cfg['dbhost'],
@@ -521,7 +525,7 @@ abstract class BaseSite
             'user' => $this->cfg['dbuser'],
             'pass' => $this->cfg['dbpass'],
             'name' => $this->cfg['dbname'],
-            'file' => 'database.tar',
+            'file' => $file,
         ]);
         if (!$success) {
             Log::error("Database restore failed!");

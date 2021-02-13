@@ -16,14 +16,19 @@ class Drush
         return $json;
     }
 
-    public function sqlRestore($pathToDump)
+    public function sqlRestore($file)
     {
-        $cwd = getcwd();
-        chdir('/opt/app-root/src');
-        SysCmd::exec(sprintf('vendor/bin/drush sql:query --file=%s 2>&1',
-          $pathToDump . '/database.tar'
-        ), '/opt/app-root/src', TRUE, TRUE);
-        chdir($cwd);
-        return TRUE;
+        $success = true;
+        try {
+            SysCmd::exec(sprintf('vendor/bin/drush sql:query --file=%s 2>&1',
+                $file
+            ), '/opt/app-root/src');
+        }
+        catch (\Exception $e) {
+            $errMsg = "Error restoring Postgres database using Drush: " . $e->getMessage();
+            Log::error($errorMsg);
+            $success = false;
+        }
+        return $success;
     }
 }
