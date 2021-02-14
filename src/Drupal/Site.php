@@ -119,18 +119,18 @@ class Site extends BaseSite
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     public function getMaintMode($restoreStatus = false) {
-        $output = SysCmd::exec($this->cfg['drush'] . ' sql-query "select value from key_value where name like \'%maintenance_mode%\'"', $this->cfg['homedir'], true, true);
-        $string_output = $output[0];
-        // value column in key_value table is a serialized variable.
-        // unserialize serialize boolean to get the maint mode.
-        // Or , do this instead.
-        if ($string_output == "b:1;" || unserialize($string_output)) {
-          $mode = true;
-          Log::msg("Maintenance mode is enabled.");
+        if (function_exists('opcache_reset')) {
+            // Prevent APC from returning a cached maintenance mode.
+            opcache_reset();
+        }
+        $output = SysCmd::exec($this->cfg['drush'] . ' ev \'echo (integer)\Drupal::state()->get("system.maintenance_mode");\'', $this->cfg['homedir'], true, true);
+        if ($output[0]) {
+            $mode = true;
+            Log::msg("Maintenance mode is enabled.");
         }
         else {
-          $mode = false;
-          Log::msg("Maintenance mode is disabled.");
+            $mode = false;
+            Log::msg("Maintenance mode is disabled.");
         }
         if ($restoreStatus) $this->restoreMaintMode = $mode;
         return $mode;
@@ -148,7 +148,7 @@ class Site extends BaseSite
      */
     public function maintMode($maint = true, $restoreStatus = false)
     {
-        $success = -1;
+        $success = 0; // Default to success.
 
         // Get current maintenance mode status.
         $inMaintMode = $this->getMaintMode($restoreStatus);
@@ -157,20 +157,27 @@ class Site extends BaseSite
             if (!$inMaintMode) {
                 Log::msg("Enter Drupal maintenance mode");
                 // Enable maintenance mode.
-                $success = SysCmd::exec($this->cfg['drush'] . ' sql-query "UPDATE key_value SET value = \'i:1;\' WHERE name LIKE \'%maintenance_mode%\'"', $this->cfg['homedir']);
+                $success = SysCmd::exec($this->cfg['drush'] . ' ev \'\Drupal::state()->set("system.maintenance_mode", true);\'', $this->cfg['homedir'], true, false);
+                if (function_exists('opcache_reset')) {
+                  // Prevent APC from returning a cached maintenance mode.
+                  opcache_reset();
+                }
                 // Rebuild cache (no need to backup temp files).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
             }
         }
         else {
-// The flag for $inMaintMode does not seem to be accurate.
-//            if ($inMaintMode) {
+            if ($inMaintMode) {
                 Log::msg("Exit Drupal maintenance mode");
                 // Rebuild cache (in case we are doing a restore).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
                 // Disable maintenance mode.
-                $success = SysCmd::exec($this->cfg['drush'] . ' sql-query "UPDATE key_value SET value = \'i:0;\' WHERE name LIKE \'%maintenance_mode%\'"', $this->cfg['homedir']);
-//            }
+                $success = SysCmd::exec($this->cfg['drush'] . ' ev \'\Drupal::state()->set("system.maintenance_mode", false);\'', $this->cfg['homedir'], true, false);
+                if (function_exists('opcache_reset')) {
+                  // Prevent APC from returning a cached maintenance mode.
+                  opcache_reset();
+                }
+            }
         }
         return ($success == 0);
     }
