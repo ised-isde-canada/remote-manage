@@ -119,10 +119,6 @@ class Site extends BaseSite
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
     public function getMaintMode($restoreStatus = false) {
-        if (function_exists('opcache_reset')) {
-            // Prevent APC from returning a cached maintenance mode.
-            opcache_reset();
-        }
         $output = SysCmd::exec($this->cfg['drush'] . ' ev \'echo (integer)\Drupal::state()->get("system.maintenance_mode");\'', $this->cfg['homedir'], true, true);
         if ($output[0]) {
             $mode = true;
