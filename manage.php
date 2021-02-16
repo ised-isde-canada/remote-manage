@@ -94,7 +94,8 @@ switch ($operation) {
 
     case 'restore':
         $filename = array_shift($opArgs);
-        $success = $site->restore($filename);
+        $exclude = array_shift($opArgs) == '--exclude' ? " --exclude '" . basename(array_shift($opArgs)) . "'" : '';
+        $success = $site->restore($filename, $exclude);
         break;
 
     case 'download':

@@ -313,7 +313,7 @@ abstract class BaseSite
      *
      * @return boolean
      */
-    public function restore($backupFile)
+    public function restore($backupFile, $exclude)
     {
         // Check to make sure we have S3 credentials available
         if (!S3Cmd::checkCredentials()) {
@@ -348,7 +348,7 @@ abstract class BaseSite
 
         // Restore files, if any.
         if ($success && !empty($this->volumes)) {
-            $success = $this->restoreVolumes();
+            $success = $this->restoreVolumes($exclude);
         }
 
         // Drop database tables
@@ -505,8 +505,9 @@ abstract class BaseSite
      *
      * @return boolean
      */
-    protected function restoreVolumes()
+    protected function restoreVolumes($exclude = '')
     {
+
         // Restore the files in each volume directory
         foreach ($this->volumes as $volume) {
             Log::msg("Restore volume $volume");
@@ -530,7 +531,10 @@ abstract class BaseSite
             // RSync to update existing filepaths using extracted files.
             if ($success) {
                 try {
-                    $cmd = sprintf('rsync -a --delete --omit-dir-times --omit-link-times --no-g --no-perms %s %s', $backupDir . '/', $volume . '/');
+                    $cmd = sprintf('rsync -a%s --delete --omit-dir-times --omit-link-times --no-g --no-perms %s %s',
+                        $exclude,
+                        $backupDir . '/',
+                        $volume . '/');
                     SysCmd::exec($cmd, $this->cfg['tmpdir']);
                 }
                 catch (\Exception $e) {

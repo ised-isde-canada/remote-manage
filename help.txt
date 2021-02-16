@@ -18,6 +18,7 @@ COMMANDS
                            If neither is specified, will return current state.
     s3list [filter]        List available backups. Optional filename substring filter.
     restore <filename>     Restore the specified backup file.
+                           --exclude <file or directory> parameter to exclude a file or directory.
     download <filename>    Download a backup file from S3 without restoring it.
     space                  List disk space information.
     app-name               Display the name of this application.
@@ -25,8 +26,8 @@ COMMANDS
     Option:
 
     --verbose              Display additional information during execution.
-    --format=[bytes/human] Format file sizes. Default is in bytes (CLI in human)
-    --log-stderr           Log verbose messages to stderr also
+    --format=[bytes/human] Format file sizes. Default is in bytes (CLI in human).
+    --log-stderr           Also log verbose messages to stderr.
 
 Note: To use backup, restore and s3list from the CLI, you will need an .env file in the same directory as manage.php.
 

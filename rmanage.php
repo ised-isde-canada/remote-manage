@@ -15,12 +15,18 @@ if (isset($_REQUEST['format'])) {
 }
 
 // Determine Job ID.
+// If a job id is specified, backup and restore will run as a background task.
 if (isset($_REQUEST['job'])) {
-    if ($_REQUEST['job'] == 'true') { // New job ID
+    if ($_REQUEST['job'] == 'true') {
+        // New job ID. System will generate and return job id.
         $job = getmypid();
-    } else if (is_numeric($_REQUEST['job'])) { // Job already in progress.
+    } else if (is_numeric($_REQUEST['job'])) {
+        // Specific job id or for job already in progress.
+        // For static systems, use job=0.
         $job = $_REQUEST['job'];
     } else {
+        // If no job id was specified, task will run in foreground.
+        // No log file will be created.
         $job = '';
     }
 }
@@ -37,7 +43,7 @@ if (file_exists(getenv('HOME') . '/lang/en/moodle.php')) { // Moodle.
 // Clean-up log files older than 7 days.
 if($files = glob($rmanageLog . '/rmanage_*.log')) {
     $now = time();
-    $seconds = 60 * 60 * 24 * 3; // 3 days.
+    $seconds = 259200; // 60 * 60 * 24 * 3 = 3 days.
     foreach ($files as $file) {
         if (is_file($file)) {
             if ($now - filemtime($file) >= $seconds) { // Too old, delete it.
@@ -59,13 +65,18 @@ if ($options) {
     $cmd .= ' ' . join(' ', $options);
 }
 
+// If performing a backup or restore, delete the log file if it already exists.
+if (in_array($operation, ['backup','restore']) && file_exists($rmanageLog)) {
+    unlink($rmanageLog);
+}
+
 switch ($operation) {
     case 'backup':
         getS3Credentials();
-        if ($job) {
+        if ($job != '') { // Background mode.
             `$cmd backup > $rmanageLog &`;
             $json = ['status' => 'ok', 'job' => $job];
-        } else {
+        } else { // Immediate mode.
             $json = getJSONResult(`$cmd backup`);
         }
         break;
@@ -77,10 +88,10 @@ switch ($operation) {
         }
         getS3Credentials();
         $s3file = $_REQUEST['s3file'];
-        if ($job) {
-            `$cmd restore $s3file > $rmanageLog &`;
+        if ($job != '') { // Background mode.
+            `$cmd restore $s3file --exclude $rmanageLog > $rmanageLog &`;
             $json = ['status' => 'ok', 'job' => $job];
-        } else {
+        } else { // Immediate mode.
             $json = getJSONResult(`$cmd restore $s3file`);
         }
         break;
