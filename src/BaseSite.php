@@ -48,7 +48,7 @@ abstract class BaseSite
     public function __construct()
     {
         $this->cfg['homedir'] = getenv('HOME');
-        $this->cfg['tmpdir'] = sys_get_temp_dir() . '/_rm_' . uniqid();
+        $this->cfg['tmpdir'] = (empty(getenv('RM_TEMP')) ? sys_get_temp_dir() : $getenv('RM_TEMP')) . '/_rm_' . uniqid();
         $this->cfg['dbport'] = '5432';
         mkdir($this->cfg['tmpdir']);
     }
