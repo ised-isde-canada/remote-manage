@@ -1,40 +1,109 @@
-# Remote management for a website
+Remote Management for Websites
+==============================
+
+![PHP](https://img.shields.io/badge/PHP-v7.3%2Fv7.4-blue.svg)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v9.6%2Fv10.2-blue.svg)
+[![GitHub Issues](https://img.shields.io/github/issues/ised-isde-canada/remote-manage.svg)](https://github.com/ised-isde-canada/remote-manage/issues)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-green.svg)](#contributing)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Written by: Duncan Sutter, Samantha Tripp and Michael Milette<br>
-Date: July 2020<br>
+Initial release: July 2020 - https://github.com/ised-isde-canada/remote-manage<br>
 License: MIT
 
-This script is the main entry point for remote management. Operations are:
-- backup
-- restore
+Note: This is the initial draft of the documentation.
 
-# Coding Guidelines
+This script is the main entry point for Remote Management. Operations are:
+
+- Backup
+- Restore
+
+For more information and other options, see the [Help file](https://github.com/ised-isde-canada/remote-manage/blob/master/help.md).
+
+It has been tested with Moodle and Drupal sites. The backup function only includes your application and data files and database, not the operating system.
+# Contributing
+
+For more information about contributing, see [CONTRIBUTING.md](https://github.com/ised-isde-canada/remote-manage/blob/master/CONTRIBUTING.md).
+## Coding Guidelines
 
 Please follow the PHP Standards Recommendations at https://www.php-fig.org/psr/
 
-# How to use this package in your application
+# Installation
+## Dependencies
 
-Install using Composer:
+- PHP 7.3 or 7.4 (may support PHP 8.x in the future)
+- PostgreSQL 9.6/10.2 or later (may support MySQL/MariaDB in the future)
+- AWS S3 Bucket
+- Composer
+- Info-ZIP 64-bit
+- Drush (required for Drupal only)
+- Has only been tested with RedHat 8 Linux but may work with others.
 
-`composer require ised-isde/remote-manage`
+You will also need enough space, up to 120% of the space used by your application, data files and database export, in your /tmp area in order to store the temporary backup files.
 
-# How to restore your app from a backup
+## Using composer
 
-You can restore your application from a backup using the command line. Before you can do anything, you need to
+Installation is done using (composer)[https://getcomposer.org/]:
+
+    composer require ised-isde/remote-manage
+
+## Configuration
+
+You can backup, list backups and restore a backup of your application using the command line. Before you can do anything, you need to
 set your environment variables so that your host can communicate with the S3 bucket. Set these variables accordingly:
 
-```
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_S3_BUCKET=
-AWS_S3_REGION=
-```
+    AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY
+    AWS_S3_BUCKET
+    AWS_S3_REGION
 
-Now you need to get a list of the backups for the app that you are trying to restore from.
+Also set an environment variable called APP_NAME which will be used as part of the backup filenames.
 
-`vendor/ised-isde/remote-manage/manage s3list <app-name>`
+In order to backup and restore application with a database, you will need to set the following environment variables:
 
-You should see a list of the most recent backups. Now you are ready to restore:
+    DB_HOST
+    DB_USERNAME
+    DB_PASSWORD
+    DB_NAME
+    DB_PORT
 
-`vendor/ised-isde/remote-manage/restore <path-to-backup>`
+If these are not set, Remote Manage will skip backing up the database.
 
+In order to backup and restore application files, set the following environment variable:
+
+    HOME - set to your application's webroot.
+    MOODLE_DATA_DIR - set to the moodledata directory (for Moodle only).
+
+If these are not set, Remote Manage will skip backing up all files.
+
+You can specify an alternate location for temporary storage of backup files by setting the RM_TEMP environment variable to an alternate directory path. If not specified, /tmp will be used.
+# Usage
+## Backup and restore your application
+
+Note: Backup of application files is only currently supported for Moodle.
+
+To backup your application:
+
+    php vendor/ised-isde/remote-manage/manage backup <app-name>
+
+To get a list of previous backups:
+
+    php vendor/ised-isde/remote-manage/manage s3list <app-name>
+
+To restore:
+
+    php vendor/ised-isde/remote-manage/manage restore <backup-file-in-s3-bucket>
+
+## Troubleshooting
+
+Be sure to check out the --verbose option. See the [Help file](https://github.com/ised-isde-canada/remote-manage/blob/master/help.md).
+
+# Copyright
+
+Copyright 2020-2021 Duncan Sutter, Samantha Tripp and Michael Milette
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

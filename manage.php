@@ -56,7 +56,7 @@ if (!$option['format'] = $params['format'] ?? '') {
 
 // Handle help.
 if (empty($operation) || $operation == 'help' || $option['help']) {
-    fwrite(STDERR, file_get_contents(__DIR__ . '/help.txt'));
+    fwrite(STDERR, file_get_contents(__DIR__ . '/help.md'));
     exit(1);
 }
 
