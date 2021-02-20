@@ -210,7 +210,7 @@ abstract class BaseSite
     }
 
     /**
-     * Copy zip file to S3.
+     * Copy file to S3.
      *
      * @return boolean
      */
@@ -221,9 +221,14 @@ abstract class BaseSite
         Log::msg("Transferring to S3: $filename");
         $s3 = new S3Cmd();
         try {
-            $s3->copy($filename, $path);
+            if (!$s3->putFile($filename, $path)) {
+                // Failed checking of S3 credentials.
+                Log::msg('Transfer aborted.');
+                return false;
+            }
         }
         catch (\Exception $e) {
+            // Failed to transfer causes an exception.
             Log::error('Failed to transfer backup file to S3.');
             Log::error($e->getMessage());
             $this->cleanup();

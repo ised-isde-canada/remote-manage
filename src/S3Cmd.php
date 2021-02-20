@@ -88,27 +88,53 @@ class S3Cmd
         return true;
     }
 
-    public function copy($filename, $path)
+    /**
+     * putFile - Upload a file to S3 bucket. Will retry up to 3 times.
+     *
+     * @param string $filename Name of the file that will be in S3.
+     * @param string $path     Path to the file to be uploaded.
+     * @return boolean         Success: True, Credential check failure: false. Will generate exception if file transfer fails.
+     */
+    public function putFile($filename, $path)
     {
         if (!self::checkCredentials()) {
             return false;
         }
+        $attempt = 0;
+        $success = false;
 
-        $uploader = new MultipartUploader($this->s3, $path, [
-            'bucket' => $this->s3_bucket,
-            'key'    => $filename
-        ]);
-        try {
-            $result = $uploader->upload();
-        } catch (MultipartUploadException $e) {
-            Log::error($e->getMessage());
-            Log::error('S3Exception on multipart upload!');
-            return false;
-        }
+        do {
+            $uploader = new MultipartUploader($this->s3, $path, [
+                'bucket' => $this->s3_bucket,
+                'key'    => $filename
+            ]);
+            try {
+                $attempt++;
+                if (!$success = $uploader->upload()) {
+                    throw new MultipartUploadException('Transfer failed.');
+                };
+            } catch (MultipartUploadException $e) {
+                Log::error("Attempt $attempt: S3Exception on multipart upload!");
+                if ($attempt == 3) {
+                    throw $e;
+                }
+                // Wait 25 seconds and try again 2 more times (up to 3 in total).
+                Log::error("Waiting 25 seconds to try again...");
+                sleep(25);
+            }
+            unset($uploader);
+        } while (!$success);
 
-        return true;
+        return $success;
     }
 
+    /**
+     * getFile - Download a file from S3 bucket.
+     *
+     * @param string $filename File to be downloaded.
+     * @param string $path     Path to save the file as.
+     * @return boolean         Success: True, Credential check failure: false. Will generate exception if file transfer fails.
+     */
     public function getFile($filename, $path)
     {
         if (!self::checkCredentials()) {
