@@ -82,7 +82,7 @@ class S3Cmd
                 }
             }
             $params['ContinuationToken'] = $data['NextContinuationToken'];
-        } while ($data['IsTruncated']);
+        } while (!empty($data['IsTruncated']));
 
         Log::data('files', $files);
         return true;
