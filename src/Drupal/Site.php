@@ -19,7 +19,7 @@ class Site extends BaseSite
 
         $this->siteType = 'drupal';
         $this->dataDir = $this->cfg['homedir'] . '/data';
-        $this->sitesDir = $this->dataDir . '/sites/default';
+        $this->sitesDir = $this->cfg['homedir'] . '/html/sites';
 
         // Set the database configuration parameters.
         $this->cfg['dbhost'] = getenv('DB_HOST');
@@ -29,7 +29,10 @@ class Site extends BaseSite
         $this->cfg['dbname'] = getenv('DB_NAME');
 
         // Define the volumes for backup and restore (must use absolute path).
-        $this->volumes = [$this->dataDir];
+        $this->volumes = [
+            $this->dataDir,
+            $this->sitesDir,
+        ];
 
         // Set app-specific configuration parameters.
         $this->cfg['drush'] = $this->cfg['homedir'] . '/vendor/bin/drush';
