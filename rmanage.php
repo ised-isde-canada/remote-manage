@@ -1,5 +1,17 @@
 <?php
 
+// If a shared secret has been defined, then it is required. Also, using a
+// shared secret means that only the POST method is supported.
+if ($secret = getenv('RMANAGE_SECRET')) {
+    if ($secret != $_POST['secret']) {
+        header('Content-type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Invalid credentials.'
+        ], JSON_PRETTY_PRINT) . PHP_EOL;
+    }
+}
+
 // Get the main operation
 $operation = $_REQUEST['operation'] ?? '';
 
@@ -20,7 +32,7 @@ if (isset($_REQUEST['job'])) {
     if ($_REQUEST['job'] == 'true') {
         // New job ID. System will generate and return job id.
         $job = getmypid();
-    } else if (is_numeric($_REQUEST['job'])) {
+    } elseif (is_numeric($_REQUEST['job'])) {
         // Specific job id or for job already in progress.
         // For static systems, use job=0.
         $job = $_REQUEST['job'];
@@ -34,14 +46,14 @@ if (isset($_REQUEST['job'])) {
 // Determine location for storing rmanage_##.log file.
 if (file_exists(getenv('HOME') . '/lang/en/moodle.php')) { // Moodle.
     $rmanageLog = "/data/moodle";
-} else if (is_dir(getenv('HOME') . '/drush')) { // Drupal.
+} elseif (is_dir(getenv('HOME') . '/drush')) { // Drupal.
     $rmanageLog = "/opt/app-root/src/data";
 } else { // Unknown type.
     $rmanageLog = "/tmp";
 }
 
 // Clean-up log files older than 7 days.
-if($files = glob($rmanageLog . '/rmanage_*.log')) {
+if ($files = glob($rmanageLog . '/rmanage_*.log')) {
     $now = time();
     $seconds = 259200; // 60 * 60 * 24 * 3 = 3 days.
     foreach ($files as $file) {
@@ -149,7 +161,7 @@ function getS3Credentials()
 function getJSONResult($result)
 {
     $result = trim($result);
-    if ($result[0] == '[' OR $result[0] == '{') {
+    if ($result[0] == '[' or $result[0] == '{') {
         return json_decode($result);
     }
     $messages = [];
