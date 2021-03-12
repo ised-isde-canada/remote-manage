@@ -1,6 +1,10 @@
 <?php
 
-use RemoteManageServer;
+// Use the composer PSR-4 autoloader.
+$loader = require '/opt/app-root/src/vendor/autoload.php';
+$loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
+
+use RemoteManage\RemoteManageServer;
 
 // If a shared secret has been defined, then it is required. Also, using a
 // shared secret means that only the POST method is supported.
