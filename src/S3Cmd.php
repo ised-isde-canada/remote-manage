@@ -91,7 +91,8 @@ class S3Cmd
      *
      * @param string $filename Name of the file that will be in S3.
      * @param string $path     Path to the file to be uploaded.
-     * @return boolean         Success: True, Credential check failure: false. Will generate exception if file transfer fails.
+     * @return boolean         Success: True, Credential check failure: false. Will generate exception
+     *                         if file transfer fails.
      */
     public function putFile($filename, $path)
     {
@@ -131,7 +132,8 @@ class S3Cmd
      *
      * @param string $filename File to be downloaded.
      * @param string $path     Path to save the file as.
-     * @return boolean         Success: True, Credential check failure: false. Will generate exception if file transfer fails.
+     * @return boolean         Success: True, Credential check failure: false. Will generate exception
+     *                         if file transfer fails.
      */
     public function getFile($filename, $path)
     {

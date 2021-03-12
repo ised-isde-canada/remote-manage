@@ -112,7 +112,12 @@ class Site extends BaseSite
      */
     public function getMaintMode($restoreStatus = false)
     {
-        $output = SysCmd::exec($this->cfg['drush'] . ' ev \'echo (integer)\Drupal::state()->get("system.maintenance_mode");\'', $this->cfg['homedir'], true, true);
+        $output = SysCmd::exec(
+            $this->cfg['drush'] . ' ev \'echo (integer)\Drupal::state()->get("system.maintenance_mode");\'',
+            $this->cfg['homedir'],
+            true,
+            true
+        );
         if ($output[0]) {
             $mode = true;
             Log::msg("Maintenance mode is enabled.");
@@ -143,7 +148,12 @@ class Site extends BaseSite
             if (!$inMaintMode) {
                 Log::msg("Enter Drupal maintenance mode");
                 // Enable maintenance mode.
-                $success = SysCmd::exec($this->cfg['drush'] . ' ev \'\Drupal::state()->set("system.maintenance_mode", true);\'', $this->cfg['homedir'], true, false);
+                $success = SysCmd::exec(
+                    $this->cfg['drush'] . ' ev \'\Drupal::state()->set("system.maintenance_mode", true);\'',
+                    $this->cfg['homedir'],
+                    true,
+                    false
+                );
                 if (function_exists('opcache_reset')) {
                   // Prevent APC from returning a cached maintenance mode.
                     opcache_reset();
@@ -157,7 +167,12 @@ class Site extends BaseSite
                 // Rebuild cache (in case we are doing a restore).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
                 // Disable maintenance mode.
-                $success = SysCmd::exec($this->cfg['drush'] . ' ev \'\Drupal::state()->set("system.maintenance_mode", false);\'', $this->cfg['homedir'], true, false);
+                $success = SysCmd::exec(
+                    $this->cfg['drush'] . ' ev \'\Drupal::state()->set("system.maintenance_mode", false);\'',
+                    $this->cfg['homedir'],
+                    true,
+                    false
+                );
                 if (function_exists('opcache_reset')) {
                   // Prevent APC from returning a cached maintenance mode.
                     opcache_reset();

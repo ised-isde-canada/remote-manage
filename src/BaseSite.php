@@ -91,13 +91,15 @@ abstract class BaseSite
             $this->maintMode(true, true);
 
             // Allow any executing cronjobs to bleed out before we begin.
-            // The following calculates the minimum required delay based on the starting point within the current minute.
+            // The following calculates the minimum required delay based on the starting point within the current
+            // minute.
             // The delay should match the value of the terminationGracePeriodSeconds of your cronjob's settings.
             $now = time() % 60;
             if ($this->siteType == 'moodle') {
                 // Delay is up to 300 seconds (5 minutes).
                 $delay = 300;
-            // Note: As of Moodle 3.10, you can query the status of Moodle scheduler thereby potentially reducing required delay.
+            // Note: As of Moodle 3.10, you can query the status of Moodle scheduler thereby potentially reducing
+            // required delay.
             } else { // Drupal and others.
                 // Delay is up to 35 seconds. This may need to be increased if you start having long cronjobs.
                 $delay = 35;
