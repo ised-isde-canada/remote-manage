@@ -9,7 +9,8 @@ class Postgres
 {
     private $pgpassfile = null; // Path to .pgpass file
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->pgpassfile = getenv('HOME') . '/.pgpass';
     }
 
@@ -27,7 +28,8 @@ class Postgres
         // Dump database to a file. Plain text for Drupal, tar for everyone else.
         $type = pathinfo($db['file'], PATHINFO_EXTENSION) == 'sql' ? '-F p' : '-F t';
         try {
-            SysCmd::exec(sprintf('pg_dump -h %s -p %s -U %s -x -c %s %s > %s 2>&1',
+            SysCmd::exec(sprintf(
+                'pg_dump -h %s -p %s -U %s -x -c %s %s > %s 2>&1',
                 $db['host'],
                 $db['port'],
                 $db['user'],
@@ -35,8 +37,7 @@ class Postgres
                 $db['name'],
                 $db['file']
             ), $site->cfg['tmpdir']);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error("Caught exception from pg_dump");
             $success = false;
         }
@@ -59,18 +60,17 @@ class Postgres
         if ($site->siteType == 'drupal') {
             $drush = new Drush();
             $success = $drush->sqlRestore($db['file']);
-        }
-        else {
+        } else {
             try {
-                SysCmd::exec(sprintf('pg_restore --no-privileges --no-owner -h %s -p %s -U %s -d %s %s 2>&1',
+                SysCmd::exec(sprintf(
+                    'pg_restore --no-privileges --no-owner -h %s -p %s -U %s -d %s %s 2>&1',
                     $db['host'],
                     $db['port'],
                     $db['user'],
                     $db['name'],
                     $db['file']
                 ), '', false, true);
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 Log::error("Error running the restore command: " . $e->getMessage());
                 $success = false;
             }
@@ -87,7 +87,8 @@ class Postgres
     public function dropTables($db)
     {
         // Establish conection to database.
-        $conn = @pg_connect(sprintf('host=%s port=%s dbname=%s user=%s password=%s',
+        $conn = @pg_connect(sprintf(
+            'host=%s port=%s dbname=%s user=%s password=%s',
             $db['host'],
             $db['port'],
             $db['name'],
@@ -130,9 +131,11 @@ class Postgres
      *
      * @return integer Tables in the database. -1 if could not connect.
      */
-    function dbTableCount($db){
+    function dbTableCount($db)
+    {
         // Establish conection to database.
-        $conn = @pg_connect(sprintf('host=%s port=%s dbname=%s user=%s password=%s',
+        $conn = @pg_connect(sprintf(
+            'host=%s port=%s dbname=%s user=%s password=%s',
             $db['host'],
             $db['port'],
             $db['name'],
@@ -143,7 +146,7 @@ class Postgres
             return -1;
         }
 
-        try{
+        try {
             // Count number of tables in the database.
             $results = @pg_query($conn, "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;");
             if ($results !== false) {
@@ -152,7 +155,7 @@ class Postgres
                 $tableCount = 0;
             }
             pg_close($conn);
-        } catch (PDOException $e){
+        } catch (PDOException $e) {
             $tableCount = 0;
         }
         return $tableCount;
@@ -164,7 +167,8 @@ class Postgres
      */
     private function createPassFile($db)
     {
-        $pgpass = sprintf("%s:%s:%s:%s:%s",
+        $pgpass = sprintf(
+            "%s:%s:%s:%s:%s",
             $db['host'],
             $db['port'],
             $db['name'],
