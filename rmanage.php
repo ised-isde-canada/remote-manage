@@ -15,6 +15,7 @@ if ($secret = getenv('RMANAGE_SECRET')) {
             'status' => 'error',
             'message' => 'Invalid credentials.'
         ], JSON_PRETTY_PRINT) . PHP_EOL;
+        exit;
     }
 }
 
