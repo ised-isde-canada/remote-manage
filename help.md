@@ -1,4 +1,4 @@
-Remote Manage v3.0 - February 2021 - Backup or restore a web application.
+Remote Manage v3.0.3 - March 2021 - Backup or restore a web application.
 https://github.com/ised-isde-canada/remote-manage
 by Duncan Sutter, Samantha Tripp and Michael Milette
 
