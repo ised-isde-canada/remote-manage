@@ -96,7 +96,9 @@ switch ($operation) {
         $filename = array_shift($opArgs);
         $exclude = array_shift($opArgs) == '--exclude' ? " --exclude '" . basename(array_shift($opArgs)) . "'" : '';
         $success = $site->restore($filename, $exclude);
-        opcache_reset(); // Clear php Opcache in case files changed during restore.
+        if (function_exists('opcache_reset')) {
+            opcache_reset(); // Clear php Opcache in case files changed during restore.
+        }
         break;
 
     case 'download':
