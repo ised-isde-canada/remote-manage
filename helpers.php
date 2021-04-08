@@ -47,4 +47,3 @@ function formatBytes($bytes, $decimal = 2)
 
     return round($bytes, $decimal) . ' ' . $units[$pow];
 }
-

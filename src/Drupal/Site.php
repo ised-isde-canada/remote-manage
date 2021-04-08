@@ -61,7 +61,7 @@ class Site extends BaseSite
         $status = SysCmd::exec($this->cfg['drush'] . ' status', $this->cfg['homedir'], true, true);
 
         foreach ($status as $str) {
-            if (preg_match ('/^\s+Database\s+:\s+Connected/', $str)){
+            if (preg_match('/^\s+Database\s+:\s+Connected/', $str)) {
                 Log::msg("Database connected.");
                 return true;
             }
@@ -81,21 +81,21 @@ class Site extends BaseSite
         foreach ($this->volumes as $volume) {
             Log::msg("Deleting files in $volume.");
             try {
-                SysCmd::exec(sprintf('rm -rf %s',
+                SysCmd::exec(sprintf(
+                    'rm -rf %s',
                     $volume
                 ));
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 Log::error($e->getMessage());
                 return false;
             }
 
             try {
-                SysCmd::exec(sprintf('mkdir %s',
+                SysCmd::exec(sprintf(
+                    'mkdir %s',
                     $volume
                 ));
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 Log::error($e->getMessage());
                 return false;
             }
@@ -110,13 +110,13 @@ class Site extends BaseSite
      *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
-    public function getMaintMode($restoreStatus = false) {
+    public function getMaintMode($restoreStatus = false)
+    {
         $output = SysCmd::exec($this->cfg['drush'] . ' ev \'echo (integer)\Drupal::state()->get("system.maintenance_mode");\'', $this->cfg['homedir'], true, true);
         if ($output[0]) {
             $mode = true;
             Log::msg("Maintenance mode is enabled.");
-        }
-        else {
+        } else {
             $mode = false;
             Log::msg("Maintenance mode is disabled.");
         }
@@ -146,13 +146,12 @@ class Site extends BaseSite
                 $success = SysCmd::exec($this->cfg['drush'] . ' ev \'\Drupal::state()->set("system.maintenance_mode", true);\'', $this->cfg['homedir'], true, false);
                 if (function_exists('opcache_reset')) {
                   // Prevent APC from returning a cached maintenance mode.
-                  opcache_reset();
+                    opcache_reset();
                 }
                 // Rebuild cache (no need to backup temp files).
                 SysCmd::exec($this->cfg['drush'] . ' cr', $this->cfg['homedir']);
             }
-        }
-        else {
+        } else {
             if ($inMaintMode) {
                 Log::msg("Exit Drupal maintenance mode");
                 // Rebuild cache (in case we are doing a restore).
@@ -161,7 +160,7 @@ class Site extends BaseSite
                 $success = SysCmd::exec($this->cfg['drush'] . ' ev \'\Drupal::state()->set("system.maintenance_mode", false);\'', $this->cfg['homedir'], true, false);
                 if (function_exists('opcache_reset')) {
                   // Prevent APC from returning a cached maintenance mode.
-                  opcache_reset();
+                    opcache_reset();
                 }
             }
         }

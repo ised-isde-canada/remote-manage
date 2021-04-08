@@ -8,7 +8,6 @@ use Aws\S3\Exception\S3Exception;
 use Aws\Common\Exception\MultipartUploadException;
 use Aws\S3\MultipartUploader;
 
-
 /**
  * This class is a wrapper for the s3cmd tool.
  */
@@ -65,14 +64,13 @@ class S3Cmd
         do {
             try {
                 $data = $this->s3->listObjectsV2($params);
-            }
-            catch (S3Exception $e) {
+            } catch (S3Exception $e) {
                 Log::error($e->getMessage());
                 Log::msg('S3 Exception on listObjectsV2!');
                 return false;
             }
 
-            for ($n = 0; $n <sizeof($data['Contents']); $n++) {
+            for ($n = 0; $n < sizeof($data['Contents']); $n++) {
                 if (empty($filter) || stripos($data['Contents'][$n]['Key'], $filter) !== false) {
                     $files[] = [
                         'filename' => $data['Contents'][$n]['Key'],
@@ -154,8 +152,7 @@ class S3Cmd
                 'Key'    => $filename,
                 'SaveAs' => $path,
             ]);
-        }
-        catch(S3Exception $e) {
+        } catch (S3Exception $e) {
             Log::error($e->getMessage());
             Log::error('S3 failed to retrieve file.');
             return false;

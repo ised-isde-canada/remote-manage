@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Reports current disk space information.
  *
@@ -48,5 +49,4 @@ class DiskSpace
             }
         }
     }
-
 }
