@@ -32,7 +32,7 @@ class Drush
         return $success;
     }
 
-    public function cacheRebuild($file)
+    public function cacheRebuild()
     {
         $success = true;
         try {
