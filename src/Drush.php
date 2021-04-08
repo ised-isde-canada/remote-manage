@@ -36,9 +36,7 @@ class Drush
     {
         $success = true;
         try {
-            SysCmd::exec(sprintf('vendor/bin/drush cr 2>&1',
-                $file
-            ), '/opt/app-root/src');
+            SysCmd::exec('vendor/bin/drush cr 2>&1', '/opt/app-root/src');
         }
         catch (\Exception $e) {
             $errMsg = "Error running cache rebuild using Drush: " . $e->getMessage();
