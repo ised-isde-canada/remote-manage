@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Base class to be extended by a site type.
  *
@@ -413,6 +414,28 @@ abstract class BaseSite
      * @return boolean Always returns false.
      */
     public function pmlist()
+    {
+        return false;
+    }
+
+    /**
+     * cache rebuild.
+     * Implementation depends on application. Apps should override.
+     *
+     * @return boolean Always returns false.
+     */
+    public function cacheRebuild()
+    {
+        return false;
+    }
+
+    /**
+     * Update database.
+     * Implementation depends on application. Apps should override.
+     *
+     * @return boolean Always returns false.
+     */
+    public function updateDatabase()
     {
         return false;
     }

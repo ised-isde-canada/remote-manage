@@ -86,8 +86,8 @@ if ($options) {
     $cmd .= ' ' . join(' ', $options);
 }
 
-// If performing a backup or restore, delete the log file if it already exists.
-if (in_array($operation, ['backup','restore']) && file_exists($rmanageLog)) {
+// Delete the log file if it already exists.
+if (file_exists($rmanageLog)) {
     unlink($rmanageLog);
 }
 
@@ -136,6 +136,24 @@ switch ($operation) {
         $json = $rmserver->getJSONResult(`$cmd s3list`);
         break;
 
+    case 'cr':
+        if ($job != '') { // Background mode.
+            `$cmd cr > $rmanageLog &`;
+            $json = ['status' => 'ok', 'job' => $job];
+        } else { // Immediate mode.
+            $json = getJSONResult(`$cmd cr`);
+        }
+        break;
+
+    case 'updb':
+        if ($job != '') { // Background mode.
+            `$cmd updb > $rmanageLog &`;
+            $json = ['status' => 'ok', 'job' => $job];
+        } else { // Immediate mode.
+            $json = getJSONResult(`$cmd updb`);
+        }
+        break;
+
     case 'pmlist':
         $json = $rmserver->getJSONResult(`$cmd pmlist`);
         break;
@@ -146,6 +164,52 @@ switch ($operation) {
 
     default:
         $json = ['status' => 'error', 'message' => "Unknown operation $operation"];
+}
+
+/**
+ * If S3 credentials are provided as POST variables then set then as environment variables, which will pass through
+ * to the manage script.
+ * We don't check for missing or invalid credentials at this stage, because they may already be set on the host.
+ */
+function getS3Credentials()
+{
+    foreach (['aws_access_key_id', 'aws_secret_access_key', 'aws_s3_bucket', 'aws_s3_region'] as $var) {
+        if (isset($_POST[$var])) {
+            putenv(strtoupper($var) . '=' . $_POST[$var]);
+        }
+    }
+}
+
+/**
+ * Parse the result from the remote-manage command, separate into messages and data and return a JSON structure.
+ * @param string $result
+ * @return mixed[]
+ */
+function getJSONResult($result)
+{
+    $result = trim($result);
+    if ($result[0] == '[' or $result[0] == '{') {
+        return json_decode($result);
+    }
+    $messages = [];
+    $jsonData = '';
+    $inJson = false;
+    foreach (explode("\n", $result) as $rec) {
+        if ($inJson) {
+            $jsonData .= "$rec\n";
+        } else {
+            if ($rec == 'DATA:') {
+                $inJson = true;
+                continue;
+            }
+            $messages[] = $rec;
+        }
+    }
+    $json = $jsonData ? json_decode($jsonData) : (object) [];
+    if ($messages) {
+        $json->messages = $messages;
+    }
+    return $json;
 }
 
 // Exit with a JSON result

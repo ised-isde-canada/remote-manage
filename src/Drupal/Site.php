@@ -194,4 +194,28 @@ class Site extends BaseSite
         Log::data('modules', $drush->pmlist());
         return true;
     }
+
+    /**
+     * Cache rebuild.
+     *
+     * @return bool success
+     */
+    public function cacheRebuild()
+    {
+        $drush = new Drush();
+        Log::data('cache rebuild', $drush->cacheRebuild());
+        return true;
+    }
+
+    /**
+     * Update database.
+     *
+     * @return bool success
+     */
+    public function updateDatabase()
+    {
+        $drush = new Drush();
+        Log::data('update database', $drush->updateDatabase());
+        return true;
+    }
 }

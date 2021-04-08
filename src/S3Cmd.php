@@ -70,7 +70,7 @@ class S3Cmd
                 return false;
             }
 
-            for ($n = 0; $n <sizeof($data['Contents']); $n++) {
+            for ($n = 0; $n < sizeof($data['Contents']); $n++) {
                 if (empty($filter) || stripos($data['Contents'][$n]['Key'], $filter) !== false) {
                     $files[] = [
                         'filename' => $data['Contents'][$n]['Key'],
