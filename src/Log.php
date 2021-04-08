@@ -117,17 +117,17 @@ class Log
                 break;
             case 'stop':
                 self::$endTime = microtime(true);
-                self::msg('Job started at ' . date('Y-m-d @ H:i:s', self::$startTime)
-                    . ' and finished at ' . date('H:i:s', self::$endTime) . '.');
+                self::msg('Job started at ' . date('Y-m-d @ H:i:s', self::$startTime) .
+                    ' and finished at ' . date('H:i:s', self::$endTime) . '.');
                 $seconds = self::$endTime - self::$startTime;
-                self::msg('Total execution time was '
-                    . floor($seconds / 3600) . gmdate(':i:s', ($seconds % 3600)) . '.');
+                self::msg('Total execution time was ' . floor($seconds / 3600) .
+                    gmdate(':i:s', ($seconds % 3600)) . '.');
                 break;
             case 'time':
                 if (isset(self::$startTime)) {
                     $seconds = microtime(true) - self::$startTime;
-                    self::msg('Elapsed execution time is '
-                        . floor($seconds / 3600) . gmdate(':i:s', ($seconds % 3600)) . '.');
+                    self::msg('Elapsed execution time is ' .
+                        floor($seconds / 3600) . gmdate(':i:s', ($seconds % 3600)) . '.');
                 }
                 break;
             default:
