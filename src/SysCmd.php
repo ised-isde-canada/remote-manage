@@ -33,7 +33,7 @@ class SysCmd
         self::$last_rc = $rc;
 
         // Log output from recent command execution.
-        foreach($output as $msg) {
+        foreach ($output as $msg) {
             Log::msg($msg);
         }
 

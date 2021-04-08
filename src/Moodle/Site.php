@@ -82,7 +82,8 @@ class Site extends BaseSite
      *
      * @return boolean $status Maintenance Mode (true), Not Maintenance Mode (false)
      */
-    public function getMaintMode($restoreStatus = false) {
+    public function getMaintMode($restoreStatus = false)
+    {
         if ($this->isInstalled()) {
             $output = SysCmd::exec('php -f admin/cli/maintenance.php', $this->siteDir, false, true);
             if ($restoreStatus) {
@@ -120,16 +121,18 @@ class Site extends BaseSite
             } else {
                 $success = 0;
             }
-        }
-        else {
+        } else {
             if ($inMaintMode) {
                 Log::msg("Exiting maintenance mode");
                 if ($this->isInstalled()) {
                     // Purge all cache (in case we are doing a restore).
                     SysCmd::exec('php -f admin/cli/purge_caches.php', $this->cfg['homedir']);
-                    // Disable maintenance mode.
+                    // Disable maintenance mode gracefully, whether set by climaintenance.html file or through UI.
                     $success = SysCmd::exec('php -f admin/cli/maintenance.php -- --disable', $this->cfg['homedir']);
-                } else {
+                }
+                if (file_exists($this->cfg['moodledata'] . '/climaintenance.html')) {
+                    // Force disabling Moodle maintenance mode. This could happen if something went wrong
+                    // (e.g. temporary DB connection error) with maintenance.php above or site does not already exist.
                     $success = SysCmd::exec('rm ' . $this->cfg['moodledata'] . '/climaintenance.html');
                 }
             } else {

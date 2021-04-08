@@ -8,7 +8,7 @@ Remote Management for Websites
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Written by: Duncan Sutter, Samantha Tripp and Michael Milette<br>
-Initial release: July 2020<br>
+Initial release: July 2020 - https://github.com/ised-isde-canada/remote-manage<br>
 License: MIT
 
 Note: This is the initial draft of the documentation.
@@ -18,7 +18,7 @@ This script is the main entry point for Remote Management. Operations are:
 - Backup
 - Restore
 
-For more information and other options, see the [Help file](https://github.com/ised-isde-canada/remote-manage/blob/master/help.txt).
+For more information and other options, see the [Help file](https://github.com/ised-isde-canada/remote-manage/blob/master/help.md).
 
 It has been tested with Moodle and Drupal sites. The backup function only includes your application and data files and database, not the operating system.
 # Contributing
@@ -60,6 +60,7 @@ set your environment variables so that your host can communicate with the S3 buc
 Also set an environment variable called APP_NAME which will be used as part of the backup filenames.
 
 In order to backup and restore application with a database, you will need to set the following environment variables:
+
     DB_HOST
     DB_USERNAME
     DB_PASSWORD
@@ -69,6 +70,7 @@ In order to backup and restore application with a database, you will need to set
 If these are not set, Remote Manage will skip backing up the database.
 
 In order to backup and restore application files, set the following environment variable:
+
     HOME - set to your application's webroot.
     MOODLE_DATA_DIR - set to the moodledata directory (for Moodle only).
 
@@ -94,4 +96,14 @@ To restore:
 
 ## Troubleshooting
 
-Be sure to check out the --verbose option. See the [Help file](https://github.com/ised-isde-canada/remote-manage/blob/master/help.txt).
+Be sure to check out the --verbose option. See the [Help file](https://github.com/ised-isde-canada/remote-manage/blob/master/help.md).
+
+# Copyright
+
+Copyright 2020-2021 Duncan Sutter, Samantha Tripp and Michael Milette
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

@@ -18,7 +18,7 @@
 
 // Use the composer PSR-4 autoloader.
 $loader = require '/opt/app-root/src/vendor/autoload.php';
-$loader->addPsr4('RemoteManage\\', __DIR__.'/src/');
+$loader->addPsr4('RemoteManage\\', __DIR__ . '/src/');
 
 require_once "helpers.php";
 
@@ -56,7 +56,7 @@ if (!$option['format'] = $params['format'] ?? '') {
 
 // Handle help.
 if (empty($operation) || $operation == 'help' || $option['help']) {
-    fwrite(STDERR, file_get_contents(__DIR__ . '/help.txt'));
+    fwrite(STDERR, file_get_contents(__DIR__ . '/help.md'));
     exit(1);
 }
 
@@ -96,6 +96,9 @@ switch ($operation) {
         $filename = array_shift($opArgs);
         $exclude = array_shift($opArgs) == '--exclude' ? " --exclude '" . basename(array_shift($opArgs)) . "'" : '';
         $success = $site->restore($filename, $exclude);
+        if (function_exists('opcache_reset')) {
+            opcache_reset(); // Clear php Opcache in case files changed during restore.
+        }
         break;
 
     case 'download':
@@ -117,6 +120,14 @@ switch ($operation) {
         }
         $site->dropTables(); // No status check because it might have already been empty.
         $success = $site->deleteFiles();
+        break;
+
+    case 'cr':
+        $success = $site->cacheRebuild();
+        break;
+
+    case 'updb':
+        $success = $site->updateDatabase();
         break;
 
     case 'pmlist':
@@ -176,7 +187,7 @@ switch ($operation) {
                 $success = true;
         }
         $inMaintMode = $site->getMaintMode();
-        Log::data('maintMode', $inMaintMode? 'on' : 'off');
+        Log::data('maintMode', $inMaintMode ? 'on' : 'off');
         $site->cleanup();
         break;
 

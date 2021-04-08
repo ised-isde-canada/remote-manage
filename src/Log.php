@@ -8,9 +8,9 @@ namespace RemoteManage;
  */
 class Log
 {
-    public  static $debugMode = false;
-    public  static $errCount = 0;
-    public  static $logStderr = false;
+    public static $debugMode = false;
+    public static $errCount = 0;
+    public static $logStderr = false;
     private static $data = null;
     private static $startTime = null;
     private static $endTime = null;

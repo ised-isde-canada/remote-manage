@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Base class to be extended by a site type.
  *
@@ -29,18 +30,18 @@ use Exception;
  */
 abstract class BaseSite
 {
-    public    $siteType = 'unknown';     // The type of site. Use all lowercase.
-    public    $appEnv = 'dev';           // Environment: dev, test, qa, prod.
-    public    $cfg = [];                 // Configuration data.
-    public    $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
-    public    $siteExists = null;        // Flag to indicate if the site already exists or will be newly created.
-    public    $initialMaintMode = null;  // Initial maintenance mode before this script started.
-    private   $backupTarFile = null;     // Filename of the backup tar file (created at backup time).
-    private   $backupFiles = [];         // List of individual backup files which will be zipped up at the end.
-    private   $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly).
-    private   $backupDir = ['D' => 'daily', 'W' => 'weekly', 'M' => 'monthly'];
-    private   $restoreArchive = null;    // S3 path of archive file (e.g. starts with daily/ ) as requested.
-    private   $restoreTarFile = null;    // Actual filename of the archive tar file.
+    public $siteType = 'unknown';     // The type of site. Use all lowercase.
+    public $appEnv = 'dev';           // Environment: dev, test, qa, prod.
+    public $cfg = [];                 // Configuration data.
+    public $volumes = [];             // List of volumes (directories) to be backed up - use absolute path!
+    public $siteExists = null;        // Flag to indicate if the site already exists or will be newly created.
+    public $initialMaintMode = null;  // Initial maintenance mode before this script started.
+    private $backupTarFile = null;     // Filename of the backup tar file (created at backup time).
+    private $backupFiles = [];         // List of individual backup files which will be zipped up at the end.
+    private $backupType = 'D';         // Type of backup to perform: D (daily), W (weekly), M (monthly).
+    private $backupDir = ['D' => 'daily', 'W' => 'weekly', 'M' => 'monthly'];
+    private $restoreArchive = null;    // S3 path of archive file (e.g. starts with daily/ ) as requested.
+    private $restoreTarFile = null;    // Actual filename of the archive tar file.
 
     /**
      * Initializing configuration settings.
@@ -48,9 +49,9 @@ abstract class BaseSite
     public function __construct()
     {
         $this->cfg['homedir'] = getenv('HOME');
-        $this->cfg['tmpdir'] = (empty(getenv('RM_TEMP')) ? sys_get_temp_dir() : $getenv('RM_TEMP')) . '/_rm_' . uniqid();
         $this->cfg['dbport'] = '5432';
-        mkdir($this->cfg['tmpdir']);
+        $this->cfg['tmpdir'] = (empty(getenv('RM_TEMP')) ? sys_get_temp_dir() : getenv('RM_TEMP')) . '/_rm_' . uniqid();
+        mkdir($this->cfg['tmpdir'], 0777, true);
     }
 
     /**
@@ -71,13 +72,13 @@ abstract class BaseSite
         // Use the current date and time to determine backup type as one of: D (daily), W (weekly), M (monthly).
         if (date('j') == 1) { // First day of the month
             $this->backupType = 'M';
-        }
-        else if (date('w') == 0) { // Sunday
+        } elseif (date('w') == 0) { // Sunday
             $this->backupType = 'W';
         }
 
         // Set the name of the backup ZIP file.
-        $this->backupTarFile = sprintf('%s@%s@%s.zip',
+        $this->backupTarFile = sprintf(
+            '%s@%s@%s.zip',
             $this->appEnv,
             date('Y-m-d@H-i'),
             $this->backupType
@@ -163,7 +164,8 @@ abstract class BaseSite
 
         if ($success) {
             try {
-                SysCmd::exec(sprintf('zip -rygq %s %s 2>&1',
+                SysCmd::exec(sprintf(
+                    'zip -rygq %s %s 2>&1',
                     $this->cfg['tmpdir'] . '/' . $this->backupTarFile,
                     $file
                 ), $this->cfg['tmpdir']);
@@ -193,12 +195,12 @@ abstract class BaseSite
             Log::msg("Backing-up volume $volume");
 
             try {
-                SysCmd::exec(sprintf('zip -rygq %s %s 2>&1',
+                SysCmd::exec(sprintf(
+                    'zip -rygq %s %s 2>&1',
                     $this->cfg['tmpdir'] . '/' . $this->backupTarFile,
                     $backupDir
                 ), $parentDir);
-            }
-            catch (\Exception $e) {
+            } catch (\Exception $e) {
                 Log::error("Caught exception zipping up volume $volume.");
                 Log::error($e->getMessage());
                 $this->cleanup();
@@ -210,7 +212,7 @@ abstract class BaseSite
     }
 
     /**
-     * Copy zip file to S3.
+     * Copy file to S3.
      *
      * @return boolean
      */
@@ -221,9 +223,13 @@ abstract class BaseSite
         Log::msg("Transferring to S3: $filename");
         $s3 = new S3Cmd();
         try {
-            $s3->copy($filename, $path);
-        }
-        catch (\Exception $e) {
+            if (!$s3->putFile($filename, $path)) {
+                // Failed checking of S3 credentials.
+                Log::msg('Transfer aborted.');
+                return false;
+            }
+        } catch (\Exception $e) {
+            // Failed to transfer causes an exception.
             Log::error('Failed to transfer backup file to S3.');
             Log::error($e->getMessage());
             $this->cleanup();
@@ -411,6 +417,28 @@ abstract class BaseSite
     }
 
     /**
+     * cache rebuild.
+     * Implementation depends on application. Apps should override.
+     *
+     * @return boolean Always returns false.
+     */
+    public function cacheRebuild()
+    {
+        return false;
+    }
+
+    /**
+     * Update database.
+     * Implementation depends on application. Apps should override.
+     *
+     * @return boolean Always returns false.
+     */
+    public function updateDatabase()
+    {
+        return false;
+    }
+
+    /**
      * Retrieve tar.gz backup file.
      *
      * @return boolean
@@ -423,8 +451,7 @@ abstract class BaseSite
             if (!$success) {
                 throw new Exception('Failed to retrieve backup archive.');
             }
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error($e->getMessage());
             $this->cleanup();
             return false;
@@ -443,12 +470,12 @@ abstract class BaseSite
         $success = true;
         $cmd = pathinfo($this->restoreTarFile, PATHINFO_EXTENSION) == 'zip' ? 'unzip -q' : 'gunzip -f';
         try {
-            SysCmd::exec(sprintf('%s %s 2>&1',
+            SysCmd::exec(sprintf(
+                '%s %s 2>&1',
                 $cmd,
                 $this->restoreTarFile
             ), $this->cfg['tmpdir']);
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             Log::error($e->getMessage());
             $this->cleanup();
             $success = false;
@@ -459,7 +486,8 @@ abstract class BaseSite
             $this->restoreTarFile = preg_replace('/\.gz$/', '', $this->restoreTarFile);
 
             try {
-                SysCmd::exec(sprintf('tar xf %s',
+                SysCmd::exec(sprintf(
+                    'tar xf %s',
                     $this->restoreTarFile
                 ), $this->cfg['tmpdir']);
             } catch (\Exception $e) {
@@ -531,13 +559,14 @@ abstract class BaseSite
             // RSync to update existing filepaths using extracted files.
             if ($success) {
                 try {
-                    $cmd = sprintf('rsync -a%s --delete --omit-dir-times --omit-link-times --no-g --no-perms %s %s',
+                    $cmd = sprintf(
+                        'rsync -a%s --delete --omit-dir-times --omit-link-times --no-g --no-perms %s %s',
                         $exclude,
                         $backupDir . '/',
-                        $volume . '/');
+                        $volume . '/'
+                    );
                     SysCmd::exec($cmd, $this->cfg['tmpdir']);
-                }
-                catch (\Exception $e) {
+                } catch (\Exception $e) {
                     Log::error($e->getMessage());
                     $success = false;
                 }

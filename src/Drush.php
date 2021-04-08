@@ -20,12 +20,38 @@ class Drush
     {
         $success = true;
         try {
-            SysCmd::exec(sprintf('vendor/bin/drush sql:query --file=%s 2>&1',
+            SysCmd::exec(sprintf(
+                'vendor/bin/drush sql:query --file=%s 2>&1',
                 $file
             ), '/opt/app-root/src');
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $errMsg = "Error restoring Postgres database using Drush: " . $e->getMessage();
+            Log::error($errorMsg);
+            $success = false;
+        }
+        return $success;
+    }
+
+    public function cacheRebuild()
+    {
+        $success = true;
+        try {
+            SysCmd::exec('vendor/bin/drush cr 2>&1', '/opt/app-root/src');
+        } catch (\Exception $e) {
+            $errMsg = "Error running cache rebuild using Drush: " . $e->getMessage();
+            Log::error($errorMsg);
+            $success = false;
+        }
+        return $success;
+    }
+
+    public function updateDatabase()
+    {
+        $success = true;
+        try {
+            SysCmd::exec('vendor/bin/drush updb -y 2>&1', '/opt/app-root/src');
+        } catch (\Exception $e) {
+            $errMsg = "Error running update-database using Drush: " . $e->getMessage();
             Log::error($errorMsg);
             $success = false;
         }

@@ -20,7 +20,7 @@ if (isset($_REQUEST['job'])) {
     if ($_REQUEST['job'] == 'true') {
         // New job ID. System will generate and return job id.
         $job = getmypid();
-    } else if (is_numeric($_REQUEST['job'])) {
+    } elseif (is_numeric($_REQUEST['job'])) {
         // Specific job id or for job already in progress.
         // For static systems, use job=0.
         $job = $_REQUEST['job'];
@@ -34,14 +34,14 @@ if (isset($_REQUEST['job'])) {
 // Determine location for storing rmanage_##.log file.
 if (file_exists(getenv('HOME') . '/lang/en/moodle.php')) { // Moodle.
     $rmanageLog = "/data/moodle";
-} else if (is_dir(getenv('HOME') . '/drush')) { // Drupal.
+} elseif (is_dir(getenv('HOME') . '/drush')) { // Drupal.
     $rmanageLog = "/opt/app-root/src/data";
 } else { // Unknown type.
     $rmanageLog = "/tmp";
 }
 
 // Clean-up log files older than 7 days.
-if($files = glob($rmanageLog . '/rmanage_*.log')) {
+if ($files = glob($rmanageLog . '/rmanage_*.log')) {
     $now = time();
     $seconds = 259200; // 60 * 60 * 24 * 3 = 3 days.
     foreach ($files as $file) {
@@ -65,8 +65,8 @@ if ($options) {
     $cmd .= ' ' . join(' ', $options);
 }
 
-// If performing a backup or restore, delete the log file if it already exists.
-if (in_array($operation, ['backup','restore']) && file_exists($rmanageLog)) {
+// Delete the log file if it already exists.
+if (file_exists($rmanageLog)) {
     unlink($rmanageLog);
 }
 
@@ -115,6 +115,24 @@ switch ($operation) {
         $json = getJSONResult(`$cmd s3list`);
         break;
 
+    case 'cr':
+        if ($job != '') { // Background mode.
+            `$cmd cr > $rmanageLog &`;
+            $json = ['status' => 'ok', 'job' => $job];
+        } else { // Immediate mode.
+            $json = getJSONResult(`$cmd cr`);
+        }
+        break;
+
+    case 'updb':
+        if ($job != '') { // Background mode.
+            `$cmd updb > $rmanageLog &`;
+            $json = ['status' => 'ok', 'job' => $job];
+        } else { // Immediate mode.
+            $json = getJSONResult(`$cmd updb`);
+        }
+        break;
+
     case 'pmlist':
         $json = getJSONResult(`$cmd pmlist`);
         break;
@@ -149,7 +167,7 @@ function getS3Credentials()
 function getJSONResult($result)
 {
     $result = trim($result);
-    if ($result[0] == '[' OR $result[0] == '{') {
+    if ($result[0] == '[' or $result[0] == '{') {
         return json_decode($result);
     }
     $messages = [];
