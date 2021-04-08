@@ -131,7 +131,7 @@ class Postgres
      *
      * @return integer Tables in the database. -1 if could not connect.
      */
-    function dbTableCount($db)
+    public function dbTableCount($db)
     {
         // Establish conection to database.
         $conn = @pg_connect(sprintf(
@@ -148,7 +148,10 @@ class Postgres
 
         try {
             // Count number of tables in the database.
-            $results = @pg_query($conn, "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;");
+            $results = @pg_query(
+                $conn,
+                "SELECT tablename FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename;"
+            );
             if ($results !== false) {
                 $tableCount = pg_num_rows($results);
             } else {

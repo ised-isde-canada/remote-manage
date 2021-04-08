@@ -31,7 +31,7 @@ class DiskSpace
      * @param $path   string Path of disk for which we want info.
      * @param $format string Specify anything other than 'bytes' to get values in human readable format.
      */
-    function __construct($path = null, $format = 'bytes')
+    public function __construct($path = null, $format = 'bytes')
     {
         if ($path === null) {
             $path = dirname(__FILE__);
