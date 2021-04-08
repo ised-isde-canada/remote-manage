@@ -31,4 +31,20 @@ class Drush
         }
         return $success;
     }
+
+    public function cacheRebuild($file)
+    {
+        $success = true;
+        try {
+            SysCmd::exec(sprintf('vendor/bin/drush cr 2>&1',
+                $file
+            ), '/opt/app-root/src');
+        }
+        catch (\Exception $e) {
+            $errMsg = "Error running cache rebuild using Drush: " . $e->getMessage();
+            Log::error($errorMsg);
+            $success = false;
+        }
+        return $success;
+    }
 }

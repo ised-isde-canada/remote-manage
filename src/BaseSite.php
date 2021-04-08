@@ -416,6 +416,17 @@ abstract class BaseSite
     }
 
     /**
+     * cache rebuild.
+     * Implementation depends on application. Apps should override.
+     *
+     * @return boolean Always returns false.
+     */
+    public function cacheRebuild()
+    {
+        return false;
+    }
+
+    /**
      * Retrieve tar.gz backup file.
      *
      * @return boolean

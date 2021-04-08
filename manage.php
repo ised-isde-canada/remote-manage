@@ -122,6 +122,10 @@ switch ($operation) {
         $success = $site->deleteFiles();
         break;
 
+    case 'cr':
+        $success = $site->cacheRebuild();
+        break;
+
     case 'pmlist':
         $success = $site->pmList();
         break;

@@ -115,6 +115,10 @@ switch ($operation) {
         $json = getJSONResult(`$cmd s3list`);
         break;
 
+    case 'cr':
+        $json = getJSONResult(`$cmd cr`);
+        break;
+
     case 'pmlist':
         $json = getJSONResult(`$cmd pmlist`);
         break;
