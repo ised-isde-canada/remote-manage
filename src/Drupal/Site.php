@@ -189,7 +189,19 @@ class Site extends BaseSite
     public function cacheRebuild()
     {
         $drush = new Drush();
-        Log::data('cacherebuild', $drush->cacheRebuild());
+        Log::data('cache rebuild', $drush->cacheRebuild());
+        return true;
+    }
+
+    /**
+     * Update database.
+     *
+     * @return bool success
+     */
+    public function updateDatabase()
+    {
+        $drush = new Drush();
+        Log::data('update database', $drush->updateDatabase());
         return true;
     }
 }

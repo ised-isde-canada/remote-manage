@@ -45,4 +45,18 @@ class Drush
         }
         return $success;
     }
+
+    public function updateDatabase()
+    {
+        $success = true;
+        try {
+            SysCmd::exec('vendor/bin/drush updb -y 2>&1', '/opt/app-root/src');
+        }
+        catch (\Exception $e) {
+            $errMsg = "Error running update-database using Drush: " . $e->getMessage();
+            Log::error($errorMsg);
+            $success = false;
+        }
+        return $success;
+    }
 }

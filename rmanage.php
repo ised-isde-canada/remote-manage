@@ -65,8 +65,8 @@ if ($options) {
     $cmd .= ' ' . join(' ', $options);
 }
 
-// If performing a backup or restore, delete the log file if it already exists.
-if (in_array($operation, ['backup','restore']) && file_exists($rmanageLog)) {
+// Delete the log file if it already exists.
+if (file_exists($rmanageLog)) {
     unlink($rmanageLog);
 }
 
@@ -116,7 +116,21 @@ switch ($operation) {
         break;
 
     case 'cr':
-        $json = getJSONResult(`$cmd cr`);
+        if ($job != '') { // Background mode.
+            `$cmd cr > $rmanageLog &`;
+            $json = ['status' => 'ok', 'job' => $job];
+        } else { // Immediate mode.
+            $json = getJSONResult(`$cmd cr`);
+        }
+        break;
+
+    case 'updb':
+        if ($job != '') { // Background mode.
+            `$cmd updb > $rmanageLog &`;
+            $json = ['status' => 'ok', 'job' => $job];
+        } else { // Immediate mode.
+            $json = getJSONResult(`$cmd updb`);
+        }
         break;
 
     case 'pmlist':

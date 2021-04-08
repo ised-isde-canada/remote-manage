@@ -126,6 +126,10 @@ switch ($operation) {
         $success = $site->cacheRebuild();
         break;
 
+    case 'updb':
+        $success = $site->updateDatabase();
+        break;
+
     case 'pmlist':
         $success = $site->pmList();
         break;

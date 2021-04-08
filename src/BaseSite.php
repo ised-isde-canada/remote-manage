@@ -427,6 +427,17 @@ abstract class BaseSite
     }
 
     /**
+     * Update database.
+     * Implementation depends on application. Apps should override.
+     *
+     * @return boolean Always returns false.
+     */
+    public function updateDatabase()
+    {
+        return false;
+    }
+
+    /**
      * Retrieve tar.gz backup file.
      *
      * @return boolean
