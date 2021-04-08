@@ -65,8 +65,8 @@ if ($options) {
     $cmd .= ' ' . join(' ', $options);
 }
 
-// Delete the log file if it already exists.
-if (file_exists($rmanageLog)) {
+// Delete the log file if it already exists, except when using the query command.
+if ($operation != 'query' && file_exists($rmanageLog)) {
     unlink($rmanageLog);
 }
 
