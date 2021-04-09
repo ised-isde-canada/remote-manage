@@ -21,11 +21,13 @@ class RemoteManageServer
      */
     public function getS3Credentials()
     {
-        foreach ([
-            'aws_access_key_id',
-            'aws_secret_access_key',
-            'aws_s3_bucket','aws_s3_region'
-        ] as $var) {
+        foreach (
+            [
+                'aws_access_key_id',
+                'aws_secret_access_key',
+                'aws_s3_bucket','aws_s3_region'
+            ] as $var
+        ) {
             if (isset($_POST[$var])) {
                 putenv(strtoupper($var) . '=' . $_POST[$var]);
             }
